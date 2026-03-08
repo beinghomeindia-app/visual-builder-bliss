@@ -1,6 +1,4 @@
-import { ArrowLeft, Clock, Users, Youtube, Share2, Eye, Plus, Minus, AlertTriangle, Loader2 } from "lucide-react";
-import InfoIconButton from "../components/ui/InfoIconButton";
-import LoginIconButton from "../components/ui/LoginIconButton";
+import { ArrowLeft, Clock, Users, Youtube, Share2, Eye, Plus, Minus, AlertTriangle, Loader2, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -10,26 +8,36 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import StarRating from "@/components/StarRating";
 import BottomNavigation from "@/components/BottomNavigation";
+import MobileHeader from "@/components/MobileHeader";
+import FavoriteHeartButton from "@/components/ui/FavoriteHeartButton";
+import RatingInput from "@/components/RatingInput";
+import RatingDisplay from "@/components/RatingDisplay";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { RecipeAPI } from "@/api/recipes";
-import { type IRecipe } from "@/models";
+import { RecipeService, type Recipe } from "@/api/recipeService";
+import { toast } from "sonner";
+import { logImageAnalysis, normalizeImageUrl } from "@/utils/imageDebugger";
+import EnhancedImage from "@/components/EnhancedImage";
+import ImageViewer from "@/components/ImageViewer";
 
 const RecipeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [recipe, setRecipe] = useState<IRecipe | null>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentServings, setCurrentServings] = useState(1);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [issueDescription, setIssueDescription] = useState("");
-  
+  const [ratingRefreshTrigger, setRatingRefreshTrigger] = useState(0);
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+
   // Helper function to convert YouTube URL to embed URL
   const getEmbedUrl = (url: string) => {
-    const videoId = url.split('v=')[1]?.split('&')[0] || 'dQw4w9WgXcQ'; // fallback to Rick Roll
-    return `https://www.youtube.com/embed/${videoId}`;
+    if (!url) return null;
+    const videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
   };
-  
+
   useEffect(() => {
     const fetchRecipe = async () => {
       if (!id) {
@@ -39,20 +47,28 @@ const RecipeDetailPage = () => {
 
       try {
         setIsLoading(true);
-        const fetchedRecipe = await RecipeAPI.getRecipe(id);
-        
-        if (!fetchedRecipe) {
+        const recipeId = parseInt(id, 10);
+        if (isNaN(recipeId)) {
+          toast.error("Invalid recipe ID");
+          navigate('/recipes');
+          return;
+        }
+        const response = await RecipeService.getRecipeById(recipeId);
+
+        if (!response.success || !response.data) {
+          toast.error("Recipe not found");
           navigate('/recipes');
           return;
         }
 
-        setRecipe(fetchedRecipe);
-        setCurrentServings(fetchedRecipe.servings);
-        
-        // Increment view count
-        await RecipeAPI.incrementViewCount(id);
+        // Debug: Analyze the recipe image
+        logImageAnalysis(response.data.image_url, `Recipe #${response.data.recipe_id} - ${response.data.name}`);
+
+        setRecipe(response.data);
+        setCurrentServings(response.data.servings);
       } catch (error) {
         console.error('Error fetching recipe:', error);
+        toast.error("Failed to load recipe");
         navigate('/recipes');
       } finally {
         setIsLoading(false);
@@ -65,13 +81,21 @@ const RecipeDetailPage = () => {
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      await navigator.share({
-        title: document.title,
-        url,
-      });
+      try {
+        await navigator.share({
+          title: recipe?.name || "Recipe",
+          url,
+        });
+      } catch (error) {
+        // User cancelled sharing
+      }
     } else {
-      await navigator.clipboard.writeText(url);
-      alert("Link copied to clipboard!");
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard!");
+      } catch (error) {
+        toast.error("Failed to copy link");
+      }
     }
   };
 
@@ -99,9 +123,9 @@ const RecipeDetailPage = () => {
     if (issueDescription.trim() && recipe) {
       // In a real app, this would send the report to your backend
       console.log("Report submitted:", {
-        recipeId: recipe._id,
-        recipeTitle: recipe.title,
-        category: recipe.category,
+        recipeId: recipe.recipe_id,
+        recipeTitle: recipe.name,
+        category: recipe.categories?.[0],
         issueDescription,
         timestamp: new Date().toISOString()
       });
@@ -141,54 +165,84 @@ const RecipeDetailPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-background pb-20" style={{ position: "relative" }}>
-      <div style={{ position: "absolute", top: 16, right: 16, display: "flex", flexDirection: "row", zIndex: 50 }}>
-        <InfoIconButton />
-        <LoginIconButton />
-      </div>
+    <div className="min-h-screen bg-background pb-20 md:pb-6 pt-14 lg:pt-0">
+      {/* Mobile Sticky Header */}
+      <MobileHeader />
+      
       <div className="relative">
-        <img 
-          src={recipe.image} 
-          alt={recipe.title}
-          className="w-full h-64 object-cover"
-        />
-        <div className="absolute top-4 left-4">
-          <Link to="/recipes">
-            <Button variant="secondary" size="sm" className="bg-card/80 backdrop-blur-sm">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
+        {/* Enhanced image with proper loading states and click to view */}
+        <div className="relative w-full">
+          <EnhancedImage
+            src={recipe.image_url}
+            alt={recipe.name}
+            className="w-full h-full object-cover cursor-pointer hover:opacity-95 transition-opacity duration-200"
+            fallbackSrc="https://placehold.co/800x400/e2e8f0/64748b?text=Recipe+Image"
+            onClick={() => setIsImageViewerOpen(true)}
+            showLoadingSpinner={true}
+            aspectRatio="video"
+          />
+          <div className="absolute top-4 left-4 z-10">
+            <Link to="/recipes">
+              <Button variant="secondary" size="sm" className="bg-card/80 backdrop-blur-sm hover:bg-card">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+          <div className="absolute top-4 right-4 z-10">
+            <FavoriteHeartButton recipeId={recipe.recipe_id.toString()} />
+          </div>
         </div>
       </div>
 
       <main className="px-4 py-6">
         <div className="mb-6">
           <div className="flex items-start justify-between mb-2">
-            <h1 className="text-2xl font-bold text-foreground">{recipe.title}</h1>
-            <Badge variant="secondary">{recipe.category}</Badge>
-          </div>
-          
-          <div className="flex items-center mt-2">
-            <div className="flex items-center gap-4">
-              <StarRating rating={recipe.rating} showNumber />
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Eye className="w-4 h-4" />
-                {recipe.viewCount} views
-              </div>
+            <h1 className="text-2xl font-bold text-foreground">{recipe.name}</h1>
+            <div className="flex flex-wrap gap-2 justify-end">
+              {recipe.categories && recipe.categories.length > 0 ? (
+                recipe.categories.map((category, index) => (
+                  <Badge key={index} variant="secondary">{category}</Badge>
+                ))
+              ) : (
+                <Badge variant="secondary">Uncategorized</Badge>
+              )}
             </div>
           </div>
-          
+
+          {/* Recipe Owner */}
+          <div className="mb-3">
+            <p className="text-sm text-muted-foreground">
+              Created by <span className="font-medium text-foreground">{recipe.owner_name}</span>
+            </p>
+          </div>
+
+          <div className="flex items-center mt-2">
+            <div className="flex items-center gap-4">
+              <StarRating rating={recipe.rating || 0} showNumber />
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Eye className="w-4 h-4" />
+                {recipe.views || 0} views
+              </div>
+              {recipe.difficulty && (
+                <Badge variant="outline" className="gap-1">
+                  <ChefHat className="w-3 h-3" />
+                  {recipe.difficulty}
+                </Badge>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              {recipe.cookTime}
+              {recipe.cook_time} min
             </div>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               <div className="flex items-center gap-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => adjustServings(currentServings - 1)}
                   disabled={currentServings <= 1}
                   className="h-6 w-6 p-0"
@@ -196,9 +250,9 @@ const RecipeDetailPage = () => {
                   <Minus className="w-3 h-3" />
                 </Button>
                 <span className="min-w-[60px] text-center">{currentServings} servings</span>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => adjustServings(currentServings + 1)}
                   disabled={currentServings >= 100}
                   className="h-6 w-6 p-0"
@@ -229,22 +283,71 @@ const RecipeDetailPage = () => {
           </div>
         </div>
 
-        {recipe.videoUrl && (
-          <div className="mb-6">
-            <div className="bg-card rounded-lg p-4 shadow-card">
-              <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
-                <Youtube className="w-5 h-5 text-primary" />
-                Video Tutorial
-              </h3>
-              <div className="aspect-video w-full">
+        {recipe.youtube_url && getEmbedUrl(recipe.youtube_url) && (
+          <>
+            {/* Mobile YouTube Video - Keep current implementation */}
+            <div className="mb-6 md:hidden">
+              <div className="bg-card rounded-lg p-4 shadow-card">
+                <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+                  <Youtube className="w-5 h-5 text-primary" />
+                  Video Tutorial
+                </h3>
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={getEmbedUrl(recipe.youtube_url)}
+                    title="Recipe Video Tutorial"
+                    className="w-full h-full rounded-lg"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Floating YouTube Video */}
+            <div className="hidden md:block fixed top-4 right-4 z-40 w-80 bg-card rounded-lg shadow-lg overflow-hidden">
+              <div className="bg-card p-2 flex items-center justify-between border-b">
+                <h4 className="text-sm font-medium text-card-foreground flex items-center gap-2">
+                  <Youtube className="w-4 h-4 text-primary" />
+                  Video Tutorial
+                </h4>
+                <button
+                  onClick={() => {
+                    const iframe = document.querySelector('#floating-video') as HTMLIFrameElement;
+                    if (iframe) {
+                      // Toggle play/pause by reloading iframe (simple implementation)
+                      const currentSrc = iframe.src;
+                      iframe.src = '';
+                      setTimeout(() => iframe.src = currentSrc, 100);
+                    }
+                  }}
+                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+                >
+                  Toggle
+                </button>
+              </div>
+              <div className="aspect-video">
                 <iframe
-                  src={getEmbedUrl(recipe.videoUrl)}
+                  id="floating-video"
+                  src={getEmbedUrl(recipe.youtube_url)}
                   title="Recipe Video Tutorial"
-                  className="w-full h-full rounded-lg"
+                  className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
+            </div>
+          </>
+        )}
+
+        {recipe.calories && (
+          <div className="mb-6">
+            <div className="bg-card rounded-lg p-4 shadow-card">
+              <h3 className="font-semibold text-card-foreground mb-2">Nutrition</h3>
+              <p className="text-muted-foreground">{recipe.calories} calories per serving</p>
+              {recipe.cuisine && (
+                <p className="text-muted-foreground mt-1">Cuisine: {recipe.cuisine}</p>
+              )}
             </div>
           </div>
         )}
@@ -260,13 +363,16 @@ const RecipeDetailPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {recipe.ingredients.map((ingredient, index) => {
-                  const scaledQuantity = getScaledQuantity(ingredient.quantity, recipe.servings);
+                {recipe.ingredients && recipe.ingredients.map((ingredient, index) => {
+                  const scaledQuantity = getScaledQuantity(parseFloat(ingredient.quantity.toString()) || 0, recipe.servings);
                   return (
                     <tr key={index} className={index % 2 === 0 ? "bg-card" : "bg-accent/10"}>
                       <td className="p-3 text-card-foreground capitalize">{ingredient.name}</td>
                       <td className="p-3 text-right text-card-foreground">
-                        {ingredient.quantity === 0 ? ingredient.unit : formatQuantity(scaledQuantity, ingredient.unit)}
+                        {!ingredient.quantity || ingredient.quantity === "0" ?
+                          ingredient.unit :
+                          formatQuantity(scaledQuantity, ingredient.unit)
+                        }
                       </td>
                     </tr>
                   );
@@ -279,12 +385,14 @@ const RecipeDetailPage = () => {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-foreground mb-4">Instructions</h2>
           <div className="space-y-4">
-            {recipe.instructions.map((step, index) => (
+            {recipe.instructions && recipe.instructions.map((instruction, index) => (
               <div key={index} className="flex gap-4 p-4 bg-card rounded-lg shadow-card">
                 <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                  {index + 1}
+                  {typeof instruction === 'object' ? instruction.step : index + 1}
                 </div>
-                <p className="text-card-foreground">{step}</p>
+                <p className="text-card-foreground">
+                  {typeof instruction === 'object' ? instruction.description : instruction}
+                </p>
               </div>
             ))}
           </div>
@@ -307,9 +415,9 @@ const RecipeDetailPage = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div className="bg-accent/20 p-3 rounded-lg text-sm">
-                  <p><strong>Recipe:</strong> {recipe.title}</p>
-                  <p><strong>Category:</strong> {recipe.category}</p>
-                  <p><strong>Recipe ID:</strong> {recipe._id}</p>
+                  <p><strong>Recipe:</strong> {recipe.name}</p>
+                  <p><strong>Category:</strong> {recipe.categories?.[0]}</p>
+                  <p><strong>Recipe ID:</strong> {recipe.recipe_id}</p>
                 </div>
                 
                 <div className="space-y-2">
@@ -342,9 +450,33 @@ const RecipeDetailPage = () => {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Rating Section */}
+        <section className="mb-8">
+          <RatingInput
+            recipeId={recipe.recipe_id}
+            onRatingSubmitted={() => setRatingRefreshTrigger(prev => prev + 1)}
+            onRatingDeleted={() => setRatingRefreshTrigger(prev => prev + 1)}
+          />
+        </section>
+
+        <section className="mb-8">
+          <RatingDisplay
+            recipeId={recipe.recipe_id}
+            refreshTrigger={ratingRefreshTrigger}
+          />
+        </section>
       </main>
 
       <BottomNavigation />
+
+      {/* Image Viewer Modal */}
+      <ImageViewer
+        images={recipe.image_url ? [recipe.image_url] : []}
+        isOpen={isImageViewerOpen}
+        onClose={() => setIsImageViewerOpen(false)}
+        alt={recipe.name}
+      />
     </div>
   );
 };

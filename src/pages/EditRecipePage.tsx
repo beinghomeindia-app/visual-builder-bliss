@@ -1,23 +1,21 @@
-import { useState } from "react";
-import { ArrowLeft, Upload, Youtube, Plus, Minus, Loader2, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Upload, Youtube, Plus, Minus, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
-import { Link, useNavigate } from "react-router-dom";
-import { RecipeService, type CreateRecipeRequest, type Ingredient, type Instruction } from "@/api/recipeService";
-import { RECIPE_CATEGORIES, DIFFICULTY_LEVELS, RECIPE_TAGS, CUISINE_TYPES, DIETARY_TYPES, type RecipeCategory, type DifficultyLevel, type RecipeTag, type CuisineType, type DietaryType } from "@/api/config";
+import { useNavigate, useParams } from "react-router-dom";
+import { RecipeService, type CreateRecipeRequest, type Ingredient, type Instruction, type Recipe } from "@/api/recipeService";
+import { RECIPE_CATEGORIES, DIFFICULTY_LEVELS, CUISINE_TYPES, DIETARY_TYPES, type RecipeCategory, type DifficultyLevel, type CuisineType, type DietaryType } from "@/api/config";
 import { toast } from "sonner";
 import InfoIconButton from "../components/ui/InfoIconButton";
 import beingHomeLogo from "/beinghomelogo.jpeg";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import ImageCropper from "@/components/ImageCropper";
-import IngredientInput from "@/components/IngredientInput";
 import EnhancedImageUpload from "@/components/EnhancedImageUpload";
 
 // Pre-defined options for tags
@@ -28,39 +26,25 @@ const COMMON_TAGS = [
   "Appetizer", "Main Course", "Side Dish", "Soup", "Salad", "Beverage"
 ];
 
-// Development helper function to export localStorage recipes
-const exportRecipesToConsole = () => {
-  const recipes = JSON.parse(localStorage.getItem('demo-recipes') || '[]');
-  console.log('=== EXPORTED RECIPES (Copy this to recipes-to-sync.json) ===');
-  console.log(JSON.stringify({ 
-    instructions: "Copy the recipes array below to recipes-to-sync.json and run 'npm run sync-recipes'",
-    recipes 
-  }, null, 2));
-  console.log('=== END EXPORT ===');
-  return recipes;
-};
-
-// Make it globally available for easy access
-if (typeof window !== 'undefined') {
-  (window as any).exportRecipesToConsole = exportRecipesToConsole;
-}
-
-const CreateRecipePage = () => {
+const EditRecipePage = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
     name: "",
-    categories: [] as RecipeCategory[], // Changed from single category to array
-    dietary_type: "Veg" as DietaryType, // Added dietary_type field
+    categories: [] as RecipeCategory[],
+    dietary_type: "Veg" as DietaryType,
     cook_time: 0,
     servings: 1,
-    calories: "" as string | number, // Changed to allow empty string
+    calories: "" as string | number,
     youtube_url: "",
     difficulty: "Medium" as DifficultyLevel,
     cuisine: "" as CuisineType | "",
-    tags: [] as RecipeTag[]
+    tags: [] as string[]
   });
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -74,9 +58,70 @@ const CreateRecipePage = () => {
   // State for custom tag input
   const [customTag, setCustomTag] = useState("");
 
+  useEffect(() => {
+    if (id) {
+      fetchRecipe(parseInt(id));
+    } else {
+      navigate('/profile');
+    }
+  }, [id, navigate]);
+
+  const fetchRecipe = async (recipeId: number) => {
+    try {
+      setIsLoading(true);
+      const response = await RecipeService.getRecipeById(recipeId);
+      
+      if (response.success && response.data) {
+        const recipeData = response.data;
+        setRecipe(recipeData);
+        
+        // Pre-populate form data
+        setFormData({
+          name: recipeData.name || "",
+          categories: Array.isArray(recipeData.categories) ? recipeData.categories : [],
+          dietary_type: recipeData.dietary_type || "Veg",
+          cook_time: recipeData.cook_time || 0,
+          servings: recipeData.servings || 1,
+          calories: recipeData.calories || "",
+          youtube_url: recipeData.youtube_url || "",
+          difficulty: recipeData.difficulty || "Medium",
+          cuisine: (recipeData.cuisine as CuisineType) || "",
+          tags: recipeData.tags || []
+        });
+
+        // Set existing image preview
+        if (recipeData.image_url) {
+          setImagePreview(recipeData.image_url);
+        }
+
+        // Set ingredients
+        if (recipeData.ingredients && recipeData.ingredients.length > 0) {
+          setIngredients(recipeData.ingredients);
+        }
+
+        // Set instructions
+        if (recipeData.instructions && recipeData.instructions.length > 0) {
+          setInstructions(recipeData.instructions.map((inst, index) => ({
+            step: index + 1,
+            description: inst.description
+          })));
+        }
+      } else {
+        toast.error("Failed to load recipe data");
+        navigate('/profile');
+      }
+    } catch (error) {
+      console.error("Error fetching recipe:", error);
+      toast.error("Failed to load recipe data");
+      navigate('/profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Helper functions for tags
   const addTag = (tag: string) => {
-    if (tag && !formData.tags.includes(tag as any)) {
+    if (tag && !formData.tags.includes(tag)) {
       updateFormData('tags', [...formData.tags, tag]);
     }
   };
@@ -103,6 +148,15 @@ const CreateRecipePage = () => {
     }
   };
 
+  const addIngredient = () => {
+    setIngredients([...ingredients, { name: "", quantity: "", unit: "" }]);
+  };
+
+  const removeIngredient = (index: number) => {
+    if (ingredients.length > 1) {
+      setIngredients(ingredients.filter((_, i) => i !== index));
+    }
+  };
 
   const addInstruction = () => {
     const newStep = instructions.length + 1;
@@ -118,6 +172,11 @@ const CreateRecipePage = () => {
     }
   };
 
+  const updateIngredient = (index: number, field: keyof Ingredient, value: string) => {
+    const updated = [...ingredients];
+    updated[index] = { ...updated[index], [field]: value };
+    setIngredients(updated);
+  };
 
   const updateInstruction = (index: number, value: string) => {
     const updated = [...instructions];
@@ -132,6 +191,28 @@ const CreateRecipePage = () => {
     }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Please select a valid image file (JPEG, PNG, WebP, or SVG)");
+        return;
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        toast.error("Image file size must be less than 5MB");
+        return;
+      }
+
+      // Show image cropper instead of directly setting the image
+      setTempImageFile(file);
+      setShowImageCropper(true);
+    }
+  };
 
   const handleCropComplete = (croppedFile: File) => {
     setSelectedImage(croppedFile);
@@ -155,48 +236,16 @@ const CreateRecipePage = () => {
 
   const removeImage = () => {
     setSelectedImage(null);
-    setImagePreview(null);
-  };
-
-  const handleExportRecipes = () => {
-    const recipes = JSON.parse(localStorage.getItem('demo-recipes') || '[]');
-    
-    if (recipes.length === 0) {
-      toast.info("No recipes to export. Create some recipes first!");
-      return;
-    }
-
-    // Create downloadable JSON file
-    const exportData = {
-      instructions: "This file contains your exported recipes. Run 'npm run sync-recipes' to sync them to MongoDB.",
-      exportedAt: new Date().toISOString(),
-      totalRecipes: recipes.length,
-      recipes: recipes
-    };
-
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    // Create temporary download link
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'recipes-to-sync.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    // Also export to console for manual copy if needed
-    console.log('=== EXPORTED RECIPES FOR DATABASE SYNC ===');
-    console.log(dataStr);
-    console.log('=== END EXPORT ===');
-    
-    toast.success(`Downloaded ${recipes.length} recipe(s) to recipes-to-sync.json. Now run 'npm run sync-recipes' in terminal.`);
+    setImagePreview(recipe?.image_url || null); // Revert to original image
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!id) {
+      toast.error("Recipe ID is missing");
+      return;
+    }
 
     // Validation
     if (!formData.name.trim()) {
@@ -230,7 +279,7 @@ const CreateRecipePage = () => {
     setIsSubmitting(true);
 
     try {
-      // Use FormData for multipart form submission when image is present
+      // Use FormData for multipart form submission when a new image is selected
       if (selectedImage) {
         const formDataToSend = new FormData();
         
@@ -252,31 +301,24 @@ const CreateRecipePage = () => {
           formDataToSend.append('tags', JSON.stringify(formData.tags));
         }
         
-        // Add image file
+        // Add the new image file
         formDataToSend.append('image', selectedImage);
         
         // Add ingredients and instructions as JSON strings
-        formDataToSend.append('ingredients', JSON.stringify(filteredIngredients.map(ing => ({
-          name: ing.name,
-          quantity: `${ing.quantity}${ing.unit ? ' ' + ing.unit : ''}`
-        }))));
-        
-        formDataToSend.append('instructions', JSON.stringify(filteredInstructions.map((inst, index) => ({
-          step: index + 1,
-          description: inst.description
-        }))));
+        formDataToSend.append('ingredients', JSON.stringify(filteredIngredients));
+        formDataToSend.append('instructions', JSON.stringify(filteredInstructions));
 
-        const response = await RecipeService.createRecipeWithFormData(formDataToSend);
+        const response = await RecipeService.editRecipeWithFormData(parseInt(id), formDataToSend);
 
         if (response.success && response.data) {
-          toast.success("Recipe created successfully!");
-          navigate(`/recipes/${response.data.recipe_id}`);
+          toast.success("Recipe updated successfully!");
+          navigate('/profile');
         } else {
-          toast.error(response.message || "Failed to create recipe");
+          toast.error(response.message || "Failed to update recipe");
         }
       } else {
-        // Use JSON format when no image
-        const recipeData: CreateRecipeRequest = {
+        // Use JSON format when no new image is selected
+        const recipeData: Partial<CreateRecipeRequest> = {
           name: formData.name.trim(),
           categories: formData.categories,
           dietary_type: formData.dietary_type,
@@ -291,38 +333,78 @@ const CreateRecipePage = () => {
           instructions: filteredInstructions
         };
 
-        const response = await RecipeService.createRecipe(recipeData);
+        const response = await RecipeService.editRecipe(parseInt(id), recipeData);
 
         if (response.success && response.data) {
-          toast.success("Recipe created successfully!");
-          navigate(`/recipes/${response.data.recipe_id}`);
+          toast.success("Recipe updated successfully!");
+          navigate('/profile');
         } else {
-          toast.error(response.message || "Failed to create recipe");
+          toast.error(response.message || "Failed to update recipe");
         }
       }
     } catch (error) {
-      console.error('Error creating recipe:', error);
-      toast.error("Failed to create recipe. Please try again.");
+      console.error('Error updating recipe:', error);
+      toast.error("Failed to update recipe. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading recipe...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20 pt-14 lg:pt-0" style={{ position: "relative" }}>
-      {/* Mobile Sticky Header */}
-      <MobileHeader />
-      
-      <header className="bg-card shadow-card border-b border-border">
+      {/* Unified Mobile Sticky Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
+        <div className="px-4 py-3">
+          {/* Top row: Logo, Title, and Actions */}
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Logo and Back Button */}
+            <div className="flex items-center gap-3">
+              <img
+                src={beingHomeLogo}
+                alt="Being Home Logo"
+                className="h-10 w-10 object-cover rounded-full"
+                onError={(e) => {
+                  console.error('Logo failed to load from:', beingHomeLogo);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2"
+                onClick={() => navigate('/profile')}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <h1 className="text-lg font-semibold text-foreground">Edit Recipe</h1>
+            </div>
+            
+            {/* Right: Info Button */}
+            <InfoIconButton />
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <header className="hidden lg:block bg-card shadow-card border-b border-border">
         <div className="px-4 py-4">
-          {/* Logo and Info Button Row */}
           <div className="flex items-center justify-between mb-4">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
+            <img
               src={beingHomeLogo}
-              alt="Being Home Logo" 
+              alt="Being Home Logo"
               className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
+              style={{
                 transform: 'scale(1.5, 1.5)',
                 transformOrigin: 'left center'
               }}
@@ -331,17 +413,19 @@ const CreateRecipePage = () => {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            {/* Info Button - Extreme Right */}
             <InfoIconButton />
           </div>
           
           <div className="flex items-center gap-3">
-            <Link to="/recipes">
-              <Button variant="ghost" size="sm" className="p-2">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <h1 className="text-xl font-semibold text-foreground">Create Recipe</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2"
+              onClick={() => navigate('/profile')}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-semibold text-foreground">Edit Recipe</h1>
           </div>
         </div>
       </header>
@@ -429,6 +513,7 @@ const CreateRecipePage = () => {
           <div className="space-y-2">
             <Label className="text-foreground font-medium">Recipe Image</Label>
             <EnhancedImageUpload
+              key={imagePreview || 'no-image'} // Force re-render when image changes
               onImageSelect={(file, preview) => {
                 setTempImageFile(file);
                 setShowImageCropper(true);
@@ -526,11 +611,54 @@ const CreateRecipePage = () => {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Ingredients *</h3>
-            <IngredientInput
-              ingredients={ingredients}
-              onChange={setIngredients}
-            />
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Ingredients *</h3>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={addIngredient}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {ingredients.map((ingredient, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    placeholder="Ingredient name"
+                    value={ingredient.name}
+                    onChange={(e) => updateIngredient(index, 'name', e.target.value)}
+                    className="bg-card border-input flex-1"
+                  />
+                  <Input
+                    placeholder="Qty"
+                    value={ingredient.quantity}
+                    onChange={(e) => updateIngredient(index, 'quantity', e.target.value)}
+                    className="bg-card border-input w-20"
+                  />
+                  <Input
+                    placeholder="Unit"
+                    value={ingredient.unit}
+                    onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                    className="bg-card border-input w-20"
+                  />
+                  {ingredients.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeIngredient(index)}
+                      className="px-2"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -578,7 +706,7 @@ const CreateRecipePage = () => {
             </div>
           </div>
 
-          {/* Tags Section - Profile page style */}
+          {/* Tags Section */}
           <div className="space-y-3">
             <Label className="text-foreground font-medium flex items-center gap-2">
               Tags
@@ -601,21 +729,21 @@ const CreateRecipePage = () => {
               </div>
             )}
 
-            {/* Available Tags Selection - Profile page style */}
+            {/* Available Tags Selection */}
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Select tags for your recipe:</p>
               <div className="flex flex-wrap gap-2">
                 {COMMON_TAGS.map((tag) => (
                   <Badge
                     key={tag}
-                    variant={formData.tags.includes(tag as any) ? "default" : "secondary"}
+                    variant={formData.tags.includes(tag) ? "default" : "secondary"}
                     className={`cursor-pointer transition-colors ${
-                      formData.tags.includes(tag as any)
+                      formData.tags.includes(tag)
                         ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "hover:bg-secondary/80"
                     }`}
                     onClick={() => {
-                      if (formData.tags.includes(tag as any)) {
+                      if (formData.tags.includes(tag)) {
                         removeTag(tag);
                       } else {
                         addTag(tag);
@@ -662,10 +790,13 @@ const CreateRecipePage = () => {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Creating Recipe...
+                Updating Recipe...
               </>
             ) : (
-              "Publish Recipe"
+              <>
+                <Save className="w-5 h-5 mr-2" />
+                Update Recipe
+              </>
             )}
           </Button>
         </form>
@@ -688,4 +819,4 @@ const CreateRecipePage = () => {
   );
 };
 
-export default CreateRecipePage;
+export default EditRecipePage;

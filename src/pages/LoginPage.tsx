@@ -1,18 +1,101 @@
 import React, { useState } from "react";
 import InfoIconButton from "../components/ui/InfoIconButton";
-import BackIconButton from "../components/ui/BackIconButton";
+import CountryCodeSelector from "../components/ui/CountryCodeSelector";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
-import registration from "./RegistrationPage";
+import { AuthService } from "@/api/auth";
+import { toast } from "sonner";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Only allow numeric characters
+    if (value && !/^\d*$/.test(value)) {
+      setPhoneError("Only numeric characters (0-9) are allowed");
+      return;
+    }
+    
+    // Limit to 10 digits
+    if (value.length > 10) {
+      setPhoneError("Phone number cannot exceed 10 digits");
+      return;
+    }
+    
+    setPhoneNumber(value);
+    
+    // Clear error if input is valid
+    if (value.length === 0) {
+      setPhoneError("");
+    } else if (value.length < 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+    } else if (value.length === 10) {
+      setPhoneError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!phoneNumber.trim() || !password.trim()) {
+      toast.error("Please fill in all fields", {
+        position: "top-center",
+        duration: 4000,
+      });
+      return;
+    }
+
+    // Validate phone number is exactly 10 digits
+    if (phoneNumber.length !== 10) {
+      toast.error("Phone number must be exactly 10 digits", {
+        position: "top-center",
+        duration: 4000,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const fullPhoneNumber = `${countryCode}${phoneNumber.trim()}`;
+      const response = await AuthService.login(fullPhoneNumber, password);
+
+      if (response.success) {
+        toast.success("Login successful!", {
+          position: "top-center",
+          duration: 3000,
+        });
+        navigate("/"); // Redirect to home page
+      } else {
+        toast.error(response.message || "Login failed", {
+          position: "top-center",
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.", {
+        position: "top-center",
+        duration: 5000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background pb-20 flex flex-col" style={{ position: "relative" }}>
+    <div className="min-h-screen bg-background pb-24 lg:pb-20 flex flex-col" style={{ position: "relative" }}>
       <header className="bg-card shadow-card border-b border-border w-full">
         <div className="px-4 py-4">
           <div className="flex items-center gap-3 mb-4">
@@ -29,37 +112,103 @@ export default function LoginPage() {
         </div>
       </header>
       <main className="flex flex-1 flex-col items-center justify-center w-full px-4 py-8">
-        <div className="bg-white rounded-xl shadow p-6 sm:p-8 w-full max-w-sm">
-          <h1 className="text-3xl font-bold text-center mb-8">Login</h1>
-          <form className="space-y-6">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border rounded mb-2 focus:outline-none"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border rounded mb-2 focus:outline-none"
-            />
+        <div className="bg-card rounded-xl shadow-lg border border-border p-6 sm:p-8 w-full max-w-sm">
+          <h1 className="text-3xl font-bold text-center mb-8 text-foreground">Login</h1>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <div className="flex gap-2">
+                <CountryCodeSelector
+                  value={countryCode}
+                  onChange={setCountryCode}
+                  className="flex-shrink-0"
+                />
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={phoneNumber}
+                  onChange={handlePhoneNumberChange}
+                  required
+                  disabled={isLoading}
+                  className={`flex-1 ${phoneError ? "border-red-500" : ""}`}
+                  maxLength={10}
+                />
+              </div>
+              {phoneError ? (
+                <p className="text-xs text-red-500">{phoneError}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Enter your 10-digit phone number without the country code
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
             <div className="text-right text-sm text-muted-foreground mb-4">
               <a href="#" className="hover:underline">Forgot password?</a>
             </div>
-            <button
+
+            <Button
               type="submit"
-              className="w-full py-3 rounded bg-[#2D5033] text-white font-semibold text-lg"
+              className="w-full"
+              disabled={isLoading}
             >
-              Login
-            </button>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                "Login"
+              )}
+            </Button>
           </form>
           <div className="mt-6 text-center text-sm">
             New user?{" "}
             <Link to="/register" className="text-primary font-medium hover:underline">
               Register
+            </Link>
+          </div>
+          
+          {/* Terms and Privacy Policy Links */}
+          <div className="mt-4 text-center text-xs text-muted-foreground">
+            By logging in, you agree to our{" "}
+            <Link to="/terms" className="text-primary hover:underline">
+              Terms and Conditions
+            </Link>
+            {" "}and{" "}
+            <Link to="/privacy" className="text-primary hover:underline">
+              Privacy Policy
             </Link>
           </div>
         </div>

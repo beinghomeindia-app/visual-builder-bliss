@@ -5,25 +5,45 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
+import MobileHeader from "@/components/MobileHeader";
 import RecipeCard from "@/components/RecipeCard";
+import RandomRecipeModal from "@/components/RandomRecipeModal";
 import { useState, useEffect, useRef } from "react";
-import { RecipeAPI } from "@/api/recipes";
-import { type IRecipe } from "@/models";
+import { RecipeService, type RecipeListItem, type RandomRecipeResponse } from "@/api/recipeService";
+import { toast } from "sonner";
 import beingHomeLogo from "/beinghomelogo.jpeg";
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [featuredRecipes, setFeaturedRecipes] = useState<IRecipe[]>([]);
+  const [featuredRecipes, setFeaturedRecipes] = useState<RecipeListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Random recipe modal state
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
+  const [randomRecipe, setRandomRecipe] = useState<RandomRecipeResponse | null>(null);
+  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
 
   useEffect(() => {
     const fetchFeaturedRecipes = async () => {
       try {
-        const recipes = await RecipeAPI.getFeaturedRecipes(6);
-        setFeaturedRecipes(recipes);
+        // Try to get popular recipes first, fallback to regular recipes
+        let response;
+        try {
+          response = await RecipeService.getPopularRecipes(1, 6);
+        } catch (error) {
+          console.warn('Popular recipes not available, fetching regular recipes');
+          response = await RecipeService.getRecipes(1, 6);
+        }
+
+        if (response.success && response.data) {
+          setFeaturedRecipes(response.data);
+        } else {
+          setFeaturedRecipes([]);
+        }
       } catch (error) {
         console.error('Error fetching featured recipes:', error);
         // Fallback to empty array
@@ -35,6 +55,12 @@ const HomePage = () => {
 
     fetchFeaturedRecipes();
   }, []);
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/recipes?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   useEffect(() => {
     let ticking = false;
@@ -113,12 +139,43 @@ const HomePage = () => {
     };
   }, [lastScrollY]);
 
-  const handleWhatToCook = () => {
-    // Get a random recipe from available recipes
-    if (featuredRecipes.length > 0) {
-      const randomRecipe = featuredRecipes[Math.floor(Math.random() * featuredRecipes.length)];
-      navigate(`/recipes/${randomRecipe._id}`);
+  const handleWhatToCook = async () => {
+    setIsRandomModalOpen(true);
+    await fetchRandomRecipe();
+  };
+
+  const fetchRandomRecipe = async () => {
+    setIsLoadingRandom(true);
+    try {
+      const response = await RecipeService.getRandomRecipe();
+      if (response.success && response.data) {
+        setRandomRecipe(response.data);
+      } else {
+        toast.error(response.message || "Failed to get random recipe");
+        setRandomRecipe(null);
+      }
+    } catch (error) {
+      console.error('Error fetching random recipe:', error);
+      toast.error("Failed to get random recipe. Please try again.");
+      setRandomRecipe(null);
+    } finally {
+      setIsLoadingRandom(false);
     }
+  };
+
+  const handleStartCooking = (recipeId: number) => {
+    setIsRandomModalOpen(false);
+    navigate(`/recipes/${recipeId}`);
+  };
+
+  const handleTryAnother = async () => {
+    setRandomRecipe(null);
+    await fetchRandomRecipe();
+  };
+
+  const handleCloseModal = () => {
+    setIsRandomModalOpen(false);
+    setRandomRecipe(null);
   };
 
   // Placeholder social media posts
@@ -166,13 +223,15 @@ const HomePage = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-background pb-20" 
-      style={{ 
+    <div
+      className="min-h-screen bg-background pb-24 lg:pb-20 pt-14 lg:pt-0"
+      style={{
         position: "relative",
         WebkitOverflowScrolling: "touch"
       }}
     >
+      {/* Mobile Sticky Header */}
+      <MobileHeader />
 
       <header className="bg-card shadow-card border-b border-border">
         <div className="px-4 py-6">
@@ -198,8 +257,15 @@ const HomePage = () => {
           
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input 
-              placeholder="Search recipes..." 
+            <Input
+              placeholder="Search recipes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                }
+              }}
               className="pl-10 bg-background border-input"
             />
           </div>
@@ -234,7 +300,16 @@ const HomePage = () => {
               ))
             ) : featuredRecipes.length > 0 ? (
               featuredRecipes.map((recipe) => (
-                <RecipeCard key={recipe._id} id={recipe._id!} title={recipe.title} image={recipe.image} rating={recipe.rating} category={recipe.category} />
+                <RecipeCard
+                  key={recipe.recipe_id}
+                  recipe_id={recipe.recipe_id}
+                  name={recipe.name}
+                  image_url={recipe.image_url}
+                  rating={recipe.rating}
+                  cook_time={recipe.cook_time}
+                  views={recipe.views}
+                  is_popular={recipe.is_popular}
+                />
               ))
             ) : (
               <div className="col-span-full text-center py-8 text-muted-foreground">
@@ -359,10 +434,18 @@ const HomePage = () => {
         </Button>
       </div>
 
-      {/* Fixed Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
-        <BottomNavigation />
-      </div>
+      {/* Random Recipe Modal */}
+      <RandomRecipeModal
+        isOpen={isRandomModalOpen}
+        onClose={handleCloseModal}
+        recipe={randomRecipe}
+        isLoading={isLoadingRandom}
+        onStartCooking={handleStartCooking}
+        onTryAnother={handleTryAnother}
+      />
+
+      {/* Bottom Navigation Bar */}
+      <BottomNavigation />
     </div>
   );
 };

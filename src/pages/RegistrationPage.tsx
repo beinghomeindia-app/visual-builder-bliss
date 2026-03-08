@@ -1,22 +1,88 @@
 import React, { useState } from "react";
 import InfoIconButton from "../components/ui/InfoIconButton";
+import CountryCodeSelector from "../components/ui/CountryCodeSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
+import { AuthService } from "@/api/auth";
+import { toast } from "sonner";
+
+const AVAILABLE_INTERESTS = [
+  "Vegetarian", "Non-Vegetarian", "Vegan", "Gluten-Free", "Keto",
+  "Low-Carb", "High-Protein", "Dairy-Free", "Nut-Free", "Spicy Food",
+  "Sweet Dishes", "Healthy Eating", "Quick Meals", "Traditional Cuisine",
+  "International Cuisine", "Baking", "Grilling", "Breakfast", "Desserts"
+];
 
 export default function RegistrationPage() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [interests, setInterests] = useState<string[]>([]);
+  const [acceptedTermsAndPrivacy, setAcceptedTermsAndPrivacy] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const toggleInterest = (interest: string) => {
+    setInterests(prev =>
+      prev.includes(interest)
+        ? prev.filter(i => i !== interest)
+        : [...prev, interest]
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Registration logic would go here
-    console.log("Registration attempted with:", { name, email, password });
+
+    if (!name.trim() || !phoneNumber.trim() || !password.trim()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (!acceptedTermsAndPrivacy) {
+      toast.error("Please accept the Terms and Conditions and Privacy Policy to continue");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const fullPhoneNumber = `${countryCode}${phoneNumber.trim()}`;
+      const response = await AuthService.register(
+        fullPhoneNumber,
+        password,
+        name.trim(),
+        interests
+      );
+
+      if (response.success) {
+        toast.success("Registration successful!");
+        navigate("/"); // Redirect to home page
+      } else {
+        toast.error(response.message || "Registration failed");
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -51,33 +117,47 @@ export default function RegistrationPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <div className="flex gap-2">
+                <CountryCodeSelector
+                  value={countryCode}
+                  onChange={setCountryCode}
+                  className="flex-shrink-0"
+                />
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="Enter phone number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Enter your phone number without the country code
+              </p>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Create a password"
+                placeholder="Create a password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
@@ -87,11 +167,82 @@ export default function RegistrationPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
-            
-            <Button type="submit" className="w-full">
-              Create Account
+
+            <div className="space-y-3">
+              <Label>Food Interests (Optional)</Label>
+              <p className="text-sm text-muted-foreground">Select your food preferences:</p>
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                {AVAILABLE_INTERESTS.map((interest) => (
+                  <Badge
+                    key={interest}
+                    variant={interests.includes(interest) ? "default" : "secondary"}
+                    className={`cursor-pointer transition-colors ${
+                      interests.includes(interest)
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "hover:bg-secondary/80"
+                    }`}
+                    onClick={() => toggleInterest(interest)}
+                  >
+                    {interest}
+                  </Badge>
+                ))}
+              </div>
+              {interests.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Selected: {interests.join(", ")}
+                </p>
+              )}
+            </div>
+
+            {/* Terms and Privacy Policy Checkbox */}
+            <div className="space-y-3">
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="terms-privacy"
+                  checked={acceptedTermsAndPrivacy}
+                  onCheckedChange={(checked) => setAcceptedTermsAndPrivacy(checked as boolean)}
+                  disabled={isLoading}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="terms-privacy"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/terms"
+                      className="text-primary hover:underline"
+                    >
+                      Terms and Conditions
+                    </Link>
+                    {" "}and{" "}
+                    <Link
+                      to="/privacy"
+                      className="text-primary hover:underline"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading || !acceptedTermsAndPrivacy}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
           

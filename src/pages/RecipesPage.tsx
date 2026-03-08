@@ -1,83 +1,114 @@
 import { useState, useEffect, useRef } from "react";
 import InfoIconButton from "../components/ui/InfoIconButton";
-import { Search, Filter, ArrowLeft, ChefHat, Plus } from "lucide-react";
+import { Search, ArrowLeft, ChefHat, Plus, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BottomNavigation from "@/components/BottomNavigation";
+import MobileHeader from "@/components/MobileHeader";
 import RecipeCard from "@/components/RecipeCard";
-import { Link } from "react-router-dom";
+import RandomRecipeModal from "@/components/RandomRecipeModal";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { RecipeService, type RecipeListItem, type RandomRecipeResponse } from "@/api/recipeService";
+import { RECIPE_CATEGORIES, type RecipeCategory } from "@/api/config";
+import { toast } from "sonner";
 import beingHomeLogo from "/beinghomelogo.jpeg";
 
 const RecipesPage = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [recipes, setRecipes] = useState<RecipeListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [isVegOnly, setIsVegOnly] = useState<boolean>(false);
+  const [selectedDietaryType, setSelectedDietaryType] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [isExpanded, setIsExpanded] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const categories = ["All", "Breakfast", "Lunch", "Dinner", "Dessert", "Snacks", "Fresh Pickles", "Juices"];
-  
-  const recipes = [
-    {
-      id: "1",
-      title: "Pasta with Vegetables",
-      image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop",
-      rating: 5,
-      category: "Dinner",
-      servings: 4,
-      isVeg: true,
-      ingredients: [
-        { name: "pasta", quantity: 200, unit: "g" },
-        { name: "zucchini", quantity: 1, unit: "piece" },
-        { name: "carrot", quantity: 1, unit: "piece" },
-        { name: "tomatoes", quantity: 2, unit: "pieces" },
-        { name: "olive oil", quantity: 2, unit: "tbsp" },
-        { name: "salt and pepper", quantity: 0, unit: "to taste" },
-        { name: "fresh herbs (basil, parsley)", quantity: 0, unit: "to taste" }
-      ]
-    },
-    {
-      id: "2", 
-      title: "Healthy Breakfast Bowl",
-      image: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=400&h=300&fit=crop",
-      rating: 4,
-      category: "Breakfast",
-      servings: 2,
-      isVeg: true,
-      ingredients: [
-        { name: "oats", quantity: 100, unit: "g" },
-        { name: "banana", quantity: 1, unit: "piece" },
-        { name: "berries", quantity: 150, unit: "g" },
-        { name: "yogurt", quantity: 200, unit: "ml" },
-        { name: "honey", quantity: 2, unit: "tbsp" },
-        { name: "nuts", quantity: 30, unit: "g" }
-      ]
-    },
-    {
-      id: "3", 
-      title: "Chicken Curry",
-      image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop",
-      rating: 5,
-      category: "Dinner",
-      servings: 4,
-      isVeg: false,
-      ingredients: [
-        { name: "chicken", quantity: 500, unit: "g" },
-        { name: "onions", quantity: 2, unit: "pieces" },
-        { name: "tomatoes", quantity: 3, unit: "pieces" },
-        { name: "ginger-garlic paste", quantity: 2, unit: "tbsp" },
-        { name: "spices", quantity: 0, unit: "to taste" },
-        { name: "oil", quantity: 3, unit: "tbsp" }
-      ]
-    }
-  ];
 
-  const filteredRecipes = recipes.filter(recipe => {
-    const categoryMatch = selectedCategory === "All" || recipe.category === selectedCategory;
-    const vegMatch = !isVegOnly || recipe.isVeg;
-    return categoryMatch && vegMatch;
-  });
+  // Random recipe modal state
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
+  const [randomRecipe, setRandomRecipe] = useState<RandomRecipeResponse | null>(null);
+  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
+
+  const categories = ["All", ...RECIPE_CATEGORIES];
+  const dietaryTypes = ["All", "Veg", "Non-Veg", "Egg", "Vegan"];
+  
+  // Fetch recipes based on current filters
+  useEffect(() => {
+    fetchRecipes();
+  }, [selectedCategory, selectedDietaryType, searchQuery]);
+
+  const fetchRecipes = async () => {
+    try {
+      setIsLoading(true);
+
+      // Always use search API with proper parameters
+      const response = await RecipeService.searchRecipes({
+        search: searchQuery.trim() || undefined,
+        meal_type: selectedCategory !== "All" ? selectedCategory as RecipeCategory : undefined,
+        dietary_type: selectedDietaryType !== "All" ? selectedDietaryType : undefined,
+        page: 1,
+        limit: 20
+      });
+
+      if (response.success && response.data) {
+        setRecipes(response.data);
+      } else {
+        toast.error("Failed to load recipes");
+        setRecipes([]);
+      }
+    } catch (error) {
+      console.error('Error fetching recipes:', error);
+      toast.error("Failed to load recipes");
+      setRecipes([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    fetchRecipes();
+  };
+
+  // Random recipe modal handlers
+  const handleWhatToCook = async () => {
+    setIsRandomModalOpen(true);
+    await fetchRandomRecipe();
+  };
+
+  const fetchRandomRecipe = async () => {
+    setIsLoadingRandom(true);
+    try {
+      const response = await RecipeService.getRandomRecipe();
+      if (response.success && response.data) {
+        setRandomRecipe(response.data);
+      } else {
+        toast.error("Failed to get random recipe");
+      }
+    } catch (error) {
+      console.error('Error fetching random recipe:', error);
+      toast.error("Failed to get random recipe");
+    } finally {
+      setIsLoadingRandom(false);
+    }
+  };
+
+  const handleStartCooking = (recipeId: number) => {
+    setIsRandomModalOpen(false);
+    navigate(`/recipes/${recipeId}`);
+  };
+
+  const handleTryAnother = async () => {
+    setRandomRecipe(null);
+    await fetchRandomRecipe();
+  };
+
+  const handleCloseModal = () => {
+    setIsRandomModalOpen(false);
+    setRandomRecipe(null);
+  };
 
   useEffect(() => {
     let ticking = false;
@@ -157,13 +188,15 @@ const RecipesPage = () => {
   }, [lastScrollY]);
 
   return (
-    <div 
-      className="min-h-screen bg-background pb-20" 
-      style={{ 
+    <div
+      className="min-h-screen bg-background pb-24 lg:pb-20 pt-14 lg:pt-0"
+      style={{
         position: "relative",
         WebkitOverflowScrolling: "touch"
       }}
     >
+      {/* Mobile Sticky Header */}
+      <MobileHeader />
 
       <header className="bg-card shadow-card border-b border-border">
         <div className="px-4 py-4">
@@ -190,96 +223,121 @@ const RecipesPage = () => {
           <div className="flex items-center gap-3 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input 
-                placeholder="Search recipes..." 
+              <Input
+                placeholder="Search recipes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
                 className="pl-10 pr-4 bg-background border-input"
               />
             </div>
             
-            {/* Veg/Non-Veg iOS Toggle */}
-            <label className="form-switch flex items-center cursor-pointer flex-shrink-0 touch-manipulation">
-              <span className="mr-2 text-xs sm:text-sm font-medium text-foreground">
-                {isVegOnly ? 'Veg' : 'All'}
-              </span>
-              <input
-                type="checkbox"
-                checked={isVegOnly}
-                onChange={(e) => setIsVegOnly(e.target.checked)}
-                className="sr-only"
-              />
-              <div className="relative inline-block w-10 h-6 bg-gray-300 rounded-full transition-colors duration-300 ease-in-out">
-                <div
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
-                    isVegOnly ? 'translate-x-4 bg-white' : 'translate-x-0'
-                  }`}
-                >
-                  <div className={`w-full h-full rounded-full flex items-center justify-center ${
-                    isVegOnly ? 'bg-green-600' : 'bg-red-600'
-                  }`}>
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                </div>
-                <div
-                  className={`absolute inset-0 rounded-full transition-colors duration-300 ease-in-out ${
-                    isVegOnly ? 'bg-green-600' : 'bg-gray-300'
-                  }`}
-                ></div>
-              </div>
-              {/* Indian Veg/Non-Veg Symbols */}
-              <div className="ml-2 flex items-center">
-                {isVegOnly ? (
-                  <div className="w-4 h-4 border-2 border-green-600 bg-white flex items-center justify-center">
-                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 border-2 border-red-600 bg-white flex items-center justify-center">
-                    <div className="w-2 h-2 bg-red-600 rounded-full"></div>
-                  </div>
-                )}
-              </div>
-            </label>
+            {/* Dietary Preference Dropdown */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Select value={selectedDietaryType} onValueChange={setSelectedDietaryType}>
+                <SelectTrigger className="w-32 h-8 text-xs">
+                  <SelectValue placeholder="Diet" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dietaryTypes.map((type) => (
+                    <SelectItem key={type} value={type} className="text-xs">
+                      <div className="flex items-center gap-2">
+                        {type === "Veg" && (
+                          <div className="w-3 h-3 border border-green-600 bg-white flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
+                          </div>
+                        )}
+                        {type === "Non-Veg" && (
+                          <div className="w-3 h-3 border border-red-600 bg-white flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-red-600 rounded-full"></div>
+                          </div>
+                        )}
+                        {type === "Vegan" && (
+                          <div className="w-3 h-3 border border-green-700 bg-white flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-green-700 rounded-full"></div>
+                          </div>
+                        )}
+                        {type === "Egg" && (
+                          <div className="w-3 h-3 border border-yellow-600 bg-white flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full"></div>
+                          </div>
+                        )}
+                        <span>{type}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {categories.map((category) => (
-              <Badge
-                key={category}
-                variant={selectedCategory === category ? "default" : "secondary"}
-                className={`cursor-pointer whitespace-nowrap transition-colors ${
-                  selectedCategory === category 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                    : "hover:bg-secondary/80"
-                }`}
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </Badge>
-            ))}
+          {/* Category Filter */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-foreground">Categories</h3>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {categories.map((category) => (
+                <Badge
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "secondary"}
+                  className={`cursor-pointer whitespace-nowrap transition-colors ${
+                    selectedCategory === category
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "hover:bg-secondary/80"
+                  }`}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </Badge>
+              ))}
+            </div>
           </div>
+
         </div>
       </header>
 
       <main className="px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <p className="text-muted-foreground">
-            {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
+            {isLoading ? 'Loading...' : `${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} found`}
           </p>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Filter className="w-4 h-4" />
-            Filter
-          </Button>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredRecipes.map((recipe) => (
-            <RecipeCard key={recipe.id} {...recipe} />
-          ))}
         </div>
 
-        {filteredRecipes.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No recipes found for this category.</p>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">Loading recipes...</span>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recipes.map((recipe) => (
+                <RecipeCard
+                  key={recipe.recipe_id}
+                  recipe_id={recipe.recipe_id}
+                  name={recipe.name}
+                  image_url={recipe.image_url}
+                  rating={recipe.rating}
+                  cook_time={recipe.cook_time}
+                  views={recipe.views}
+                  is_popular={recipe.is_popular}
+                />
+              ))}
+            </div>
+
+            {recipes.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  {searchQuery ? `No recipes found for "${searchQuery}"` : "No recipes found for this category."}
+                </p>
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -306,9 +364,10 @@ const RecipesPage = () => {
         
         {/* What to Cook Button */}
         <Button
+          onClick={handleWhatToCook}
           className={`py-3 bg-primary text-primary-foreground font-semibold shadow-xl border-0 hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out rounded-full touch-manipulation ${
-            isExpanded 
-              ? 'gap-2 px-4 min-w-[140px] sm:min-w-[160px] justify-start' 
+            isExpanded
+              ? 'gap-2 px-4 min-w-[140px] sm:min-w-[160px] justify-start'
               : 'w-14 h-14 p-0 min-w-0 justify-center items-center'
           }`}
         >
@@ -321,10 +380,18 @@ const RecipesPage = () => {
         </Button>
       </div>
 
-      {/* Fixed Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
-        <BottomNavigation />
-      </div>
+      {/* Random Recipe Modal */}
+      <RandomRecipeModal
+        isOpen={isRandomModalOpen}
+        onClose={handleCloseModal}
+        recipe={randomRecipe}
+        isLoading={isLoadingRandom}
+        onStartCooking={handleStartCooking}
+        onTryAnother={handleTryAnother}
+      />
+
+      {/* Bottom Navigation Bar */}
+      <BottomNavigation />
     </div>
   );
 };

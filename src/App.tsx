@@ -11,9 +11,13 @@ import InfoPage from "./pages/InfoPage";
 import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CreateRecipePage from "./pages/CreateRecipePage";
+import EditRecipePage from "./pages/EditRecipePage";
 import KBankPage from "./pages/KBankPage";
 import FavoritesPage from "./pages/FavoritesPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -22,18 +26,37 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename="/visual-builder-bliss">
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/recipes" element={<RecipesPage />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-          <Route path="/create-recipe" element={<CreateRecipePage />} />
+          <Route path="/recipes/:id/edit" element={
+            <ProtectedRoute>
+              <EditRecipePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/create-recipe" element={
+            <ProtectedRoute>
+              <CreateRecipePage />
+            </ProtectedRoute>
+          } />
           <Route path="/k-bank" element={<KBankPage />} />
-          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/favorites" element={
+            <ProtectedRoute>
+              <FavoritesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegistrationPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/info" element={<InfoPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
