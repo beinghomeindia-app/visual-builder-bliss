@@ -128,38 +128,15 @@ const KBankPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-20 pt-14 lg:pt-0" style={{ position: "relative" }}>
-      {/* Mobile Sticky Header */}
-      <MobileHeader />
+    <div className="min-h-screen bg-background pb-24 lg:pb-20" style={{ position: "relative" }}>
+      <AppHeader />
 
-      <header className="bg-card shadow-card border-b border-border">
-        <div className="px-4 py-4">
-          {/* Logo and Info Button Row */}
-          <div className="flex items-center justify-between mb-4">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
-              src={beingHomeLogo}
-              alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            {/* Info Button - Extreme Right */}
-            <InfoIconButton />
-          </div>
-          
-          <h1 className="text-xl font-semibold text-foreground mb-2">K-Bank</h1>
-          <p className="text-muted-foreground text-sm">
-            Explore different types of foods and their nutritional benefits
-          </p>
-        </div>
-      </header>
+      <div className="bg-card border-b border-border px-4 py-3">
+        <h1 className="text-xl font-semibold text-foreground mb-1">K-Bank</h1>
+        <p className="text-muted-foreground text-sm">
+          Explore different types of foods and their nutritional benefits
+        </p>
+      </div>
 
       <main className="px-4 py-6 space-y-6">
         <div className="text-center mb-8">
