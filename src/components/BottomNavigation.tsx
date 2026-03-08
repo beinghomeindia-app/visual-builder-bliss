@@ -67,9 +67,9 @@ const BottomNavigation = () => {
 
                 if (item.isCenter) {
                   return (
-                    <Link
+                    <button
                       key={item.label}
-                      to={item.path}
+                      onClick={handleWhatToCook}
                       className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 touch-manipulation min-w-[64px]"
                     >
                       <div className="bg-primary rounded-full p-3 -mt-4 shadow-lg text-primary-foreground">
@@ -78,7 +78,7 @@ const BottomNavigation = () => {
                       <span className="text-[10px] font-semibold text-foreground mt-0.5">
                         {item.label}
                       </span>
-                    </Link>
+                    </button>
                   );
                 }
 
