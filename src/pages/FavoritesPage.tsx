@@ -1,14 +1,11 @@
 import { Heart, Loader2, Search, ChefHat, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/BottomNavigation";
-import MobileHeader from "@/components/MobileHeader";
+import AppHeader from "@/components/AppHeader";
 import RecipeCard from "@/components/RecipeCard";
 import { Link } from "react-router-dom";
-import InfoIconButton from "../components/ui/InfoIconButton";
-import beingHomeLogo from "/beinghomelogo.jpeg";
 import { useState, useEffect } from "react";
 import { FavoritesService, type FavoriteItem } from "@/api/favoritesService";
-import { AuthService } from "@/api/auth";
 import { toast } from "sonner";
 
 const FavoritesPage = () => {
@@ -16,30 +13,19 @@ const FavoritesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
+  useEffect(() => { fetchFavorites(); }, []);
 
   const fetchFavorites = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await FavoritesService.getFavorites();
-
       if (response.success) {
-        // Handle successful response - data can be null for empty favorites
-        if (response.data && Array.isArray(response.data)) {
-          setFavoriteRecipes(response.data);
-        } else {
-          // Empty favorites (data is null or empty array)
-          setFavoriteRecipes([]);
-        }
+        setFavoriteRecipes(response.data && Array.isArray(response.data) ? response.data : []);
       } else {
-        // Only set error for actual API failures
         setError(response.message || "Failed to load favorites");
       }
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
+    } catch {
       setError("Failed to load favorites. Please try again.");
     } finally {
       setIsLoading(false);
@@ -47,35 +33,12 @@ const FavoritesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-20 pt-14 lg:pt-0" style={{ position: "relative" }}>
-      {/* Mobile Sticky Header */}
-      <MobileHeader />
-      
-      <header className="bg-card shadow-card border-b border-border">
-        <div className="px-4 py-4">
-          {/* Logo and Info Button Row */}
-          <div className="flex items-center justify-between mb-4">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
-              src={beingHomeLogo}
-              alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            {/* Info Button - Extreme Right */}
-            <InfoIconButton />
-          </div>
-          
-          <h1 className="text-xl font-semibold text-foreground">Favorites</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background pb-24 lg:pb-20" style={{ position: "relative" }}>
+      <AppHeader />
+
+      <div className="bg-card border-b border-border px-4 py-3">
+        <h1 className="text-xl font-semibold text-foreground">Favorites</h1>
+      </div>
 
       <main className="px-4 py-6">
         {isLoading ? (
@@ -88,22 +51,20 @@ const FavoritesPage = () => {
             <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Error loading favorites</h2>
             <p className="text-muted-foreground mb-6">{error}</p>
-            <Button onClick={fetchFavorites} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              Try Again
-            </Button>
+            <Button onClick={fetchFavorites} className="bg-primary hover:bg-primary/90 text-primary-foreground">Try Again</Button>
           </div>
         ) : favoriteRecipes.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {favoriteRecipes.map((favoriteItem) => (
+            {favoriteRecipes.map((item) => (
               <RecipeCard
-                key={favoriteItem.recipe_id}
-                recipe_id={favoriteItem.recipe_id}
-                name={favoriteItem.recipe.name}
-                image_url={favoriteItem.recipe.image_url}
-                rating={favoriteItem.recipe.rating}
-                cook_time={favoriteItem.recipe.cook_time}
-                views={favoriteItem.recipe.views}
-                is_popular={favoriteItem.recipe.is_popular}
+                key={item.recipe_id}
+                recipe_id={item.recipe_id}
+                name={item.recipe.name}
+                image_url={item.recipe.image_url}
+                rating={item.recipe.rating}
+                cook_time={item.recipe.cook_time}
+                views={item.recipe.views}
+                is_popular={item.recipe.is_popular}
               />
             ))}
           </div>
@@ -114,41 +75,28 @@ const FavoritesPage = () => {
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
               Add your favorites and you can check them later. Discover amazing recipes and save the ones you love!
             </p>
-
             <div className="space-y-4 max-w-sm mx-auto">
               <Link to="/recipes" className="block">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
-                  <Search className="w-4 h-4" />
-                  Browse All Recipes
+                  <Search className="w-4 h-4" /> Browse All Recipes
                 </Button>
               </Link>
-
               <div className="grid grid-cols-2 gap-3">
                 <Link to="/recipes?category=Popular" className="block">
-                  <Button variant="outline" className="w-full gap-2">
-                    <Star className="w-4 h-4" />
-                    Popular
-                  </Button>
+                  <Button variant="outline" className="w-full gap-2"><Star className="w-4 h-4" /> Popular</Button>
                 </Link>
                 <Link to="/create-recipe" className="block">
-                  <Button variant="outline" className="w-full gap-2">
-                    <ChefHat className="w-4 h-4" />
-                    Create Recipe
-                  </Button>
+                  <Button variant="outline" className="w-full gap-2"><ChefHat className="w-4 h-4" /> Create Recipe</Button>
                 </Link>
               </div>
             </div>
-
             <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-md mx-auto">
-              <p className="text-sm text-muted-foreground">
-                💡 <strong>Tip:</strong> Click the heart icon on any recipe to add it to your favorites!
-              </p>
+              <p className="text-sm text-muted-foreground">💡 <strong>Tip:</strong> Click the heart icon on any recipe to add it to your favorites!</p>
             </div>
           </div>
         )}
       </main>
 
-      {/* Bottom Navigation Bar */}
       <BottomNavigation />
     </div>
   );
