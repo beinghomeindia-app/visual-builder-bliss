@@ -1,4 +1,4 @@
-import { User, Bell, BellDot, Info, Landmark } from "lucide-react";
+import { User, Bell, BellDot, Info, Landmark, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
