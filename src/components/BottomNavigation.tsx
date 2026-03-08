@@ -1,8 +1,16 @@
-import { Home, BookOpen, Plus, Heart } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Home, BookOpen, ChefHat, Plus, Heart } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { RecipeService, type RandomRecipeResponse } from "@/api/recipeService";
+import { toast } from "sonner";
+import RandomRecipeModal from "@/components/RandomRecipeModal";
 
 const BottomNavigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
+  const [randomRecipe, setRandomRecipe] = useState<RandomRecipeResponse | null>(null);
+  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") return true;
@@ -10,10 +18,39 @@ const BottomNavigation = () => {
     return false;
   };
 
+  const handleWhatToCook = async () => {
+    setIsRandomModalOpen(true);
+    setIsLoadingRandom(true);
+    try {
+      const response = await RecipeService.getRandomRecipe();
+      if (response.success && response.data) {
+        setRandomRecipe(response.data);
+      } else {
+        toast.error("Failed to get random recipe");
+        setRandomRecipe(null);
+      }
+    } catch {
+      toast.error("Failed to get random recipe");
+      setRandomRecipe(null);
+    } finally {
+      setIsLoadingRandom(false);
+    }
+  };
+
+  const handleTryAnother = async () => {
+    setRandomRecipe(null);
+    setIsLoadingRandom(true);
+    try {
+      const response = await RecipeService.getRandomRecipe();
+      if (response.success && response.data) setRandomRecipe(response.data);
+    } catch {} finally { setIsLoadingRandom(false); }
+  };
+
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: Plus, label: "Add", path: "/create-recipe", isCenter: true },
+    { icon: ChefHat, label: "What to Cook", path: "#", isCenter: true },
+    { icon: Plus, label: "Add", path: "/create-recipe" },
     { icon: Heart, label: "Favorites", path: "/favorites" },
   ];
 
