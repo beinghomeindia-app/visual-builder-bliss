@@ -1,4 +1,30 @@
-import { type IRecipe, type IIngredient } from '../models';
+export interface IIngredient {
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
+export interface IRecipe {
+  _id?: string;
+  title: string;
+  image: string;
+  rating: number;
+  category: string;
+  cookTime: string;
+  servings: number;
+  calories: number;
+  ingredients: IIngredient[];
+  instructions: string[];
+  videoUrl?: string;
+  viewCount: number;
+  createdBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isPublished: boolean;
+  tags?: string[];
+  difficulty?: 'Easy' | 'Medium' | 'Hard';
+  cuisine?: string;
+}
 
 // API Base URL - must be set via VITE_API_BASE_URL environment variable
 // This frontend app connects to an external API service
