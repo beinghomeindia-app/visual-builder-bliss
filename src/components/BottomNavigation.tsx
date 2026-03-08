@@ -116,6 +116,19 @@ const BottomNavigation = () => {
             const Icon = item.icon;
             const active = isActive(item.path);
 
+            if (item.isCenter) {
+              return (
+                <button
+                  key={item.label}
+                  onClick={handleWhatToCook}
+                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                >
+                  <Icon size={20} />
+                  <span className="text-xs font-medium">{item.label}</span>
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.path || item.label}
@@ -133,6 +146,15 @@ const BottomNavigation = () => {
           })}
         </div>
       </nav>
+
+      <RandomRecipeModal
+        isOpen={isRandomModalOpen}
+        onClose={() => { setIsRandomModalOpen(false); setRandomRecipe(null); }}
+        recipe={randomRecipe}
+        isLoading={isLoadingRandom}
+        onStartCooking={(id) => { setIsRandomModalOpen(false); navigate(`/recipes/${id}`); }}
+        onTryAnother={handleTryAnother}
+      />
     </>
   );
 };
