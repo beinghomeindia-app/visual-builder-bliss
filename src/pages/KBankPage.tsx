@@ -132,7 +132,7 @@ const KBankPage = () => {
       <AppHeader />
 
       <div className="bg-card border-b border-border px-4 py-3">
-        <h1 className="text-xl font-semibold text-foreground mb-1">K-Bank</h1>
+        <h1 className="text-xl font-semibold text-foreground mb-1">My Kitchen</h1>
         <p className="text-muted-foreground text-sm">
           Explore different types of foods and their nutritional benefits
         </p>
