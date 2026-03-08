@@ -273,15 +273,7 @@ const RecipeDetailPage = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-lg p-4 mb-6 shadow-card">
-          <div className="flex items-center gap-2 text-card-foreground">
-            <span className="font-semibold">Nutrition</span>
-            <span>-</span>
-            <span className="text-muted-foreground">Calories</span>
-            <span>-</span>
-            <span className="font-semibold">{recipe.calories}</span>
-          </div>
-        </div>
+        {/* Nutrition section - single card only (duplicate inline row removed) */}
 
         {recipe.youtube_url && getEmbedUrl(recipe.youtube_url) && (
           <>
