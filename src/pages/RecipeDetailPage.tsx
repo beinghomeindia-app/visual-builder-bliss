@@ -165,9 +165,9 @@ const RecipeDetailPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-6 pt-14 lg:pt-0">
-      {/* Mobile Sticky Header */}
-      <MobileHeader />
+    <div className="min-h-screen bg-background pb-20 md:pb-6">
+      <AppHeader />
+      
       
       <div className="relative">
         {/* Enhanced image with proper loading states and click to view */}
