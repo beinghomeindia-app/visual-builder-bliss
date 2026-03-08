@@ -1,8 +1,16 @@
-import { Home, BookOpen, Plus, Heart } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Home, BookOpen, ChefHat, Plus, Heart } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { RecipeService, type RandomRecipeResponse } from "@/api/recipeService";
+import { toast } from "sonner";
+import RandomRecipeModal from "@/components/RandomRecipeModal";
 
 const BottomNavigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
+  const [randomRecipe, setRandomRecipe] = useState<RandomRecipeResponse | null>(null);
+  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") return true;
@@ -10,10 +18,39 @@ const BottomNavigation = () => {
     return false;
   };
 
+  const handleWhatToCook = async () => {
+    setIsRandomModalOpen(true);
+    setIsLoadingRandom(true);
+    try {
+      const response = await RecipeService.getRandomRecipe();
+      if (response.success && response.data) {
+        setRandomRecipe(response.data);
+      } else {
+        toast.error("Failed to get random recipe");
+        setRandomRecipe(null);
+      }
+    } catch {
+      toast.error("Failed to get random recipe");
+      setRandomRecipe(null);
+    } finally {
+      setIsLoadingRandom(false);
+    }
+  };
+
+  const handleTryAnother = async () => {
+    setRandomRecipe(null);
+    setIsLoadingRandom(true);
+    try {
+      const response = await RecipeService.getRandomRecipe();
+      if (response.success && response.data) setRandomRecipe(response.data);
+    } catch {} finally { setIsLoadingRandom(false); }
+  };
+
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: Plus, label: "Add", path: "/create-recipe", isCenter: true },
+    { icon: ChefHat, label: "What to Cook", path: "#", isCenter: true },
+    { icon: Plus, label: "Add", path: "/create-recipe" },
     { icon: Heart, label: "Favorites", path: "/favorites" },
   ];
 
@@ -30,9 +67,9 @@ const BottomNavigation = () => {
 
                 if (item.isCenter) {
                   return (
-                    <Link
+                    <button
                       key={item.label}
-                      to={item.path}
+                      onClick={handleWhatToCook}
                       className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 touch-manipulation min-w-[64px]"
                     >
                       <div className="bg-primary rounded-full p-3 -mt-4 shadow-lg text-primary-foreground">
@@ -41,7 +78,7 @@ const BottomNavigation = () => {
                       <span className="text-[10px] font-semibold text-foreground mt-0.5">
                         {item.label}
                       </span>
-                    </Link>
+                    </button>
                   );
                 }
 
@@ -79,6 +116,19 @@ const BottomNavigation = () => {
             const Icon = item.icon;
             const active = isActive(item.path);
 
+            if (item.isCenter) {
+              return (
+                <button
+                  key={item.label}
+                  onClick={handleWhatToCook}
+                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                >
+                  <Icon size={20} />
+                  <span className="text-xs font-medium">{item.label}</span>
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.path || item.label}
@@ -96,6 +146,15 @@ const BottomNavigation = () => {
           })}
         </div>
       </nav>
+
+      <RandomRecipeModal
+        isOpen={isRandomModalOpen}
+        onClose={() => { setIsRandomModalOpen(false); setRandomRecipe(null); }}
+        recipe={randomRecipe}
+        isLoading={isLoadingRandom}
+        onStartCooking={(id) => { setIsRandomModalOpen(false); navigate(`/recipes/${id}`); }}
+        onTryAnother={handleTryAnother}
+      />
     </>
   );
 };
