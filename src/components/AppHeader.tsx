@@ -64,17 +64,6 @@ const AppHeader = () => {
 
         {/* Right: Info, Favorites, Notifications, Profile */}
         <div className="flex items-center gap-1">
-          <InfoIconButton />
-
-          {/* Favorites */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/favorites")}
-            className="p-2 hover:bg-accent"
-          >
-            <Heart className="w-5 h-5 text-foreground" />
-          </Button>
 
           {/* Notifications */}
           <Button
