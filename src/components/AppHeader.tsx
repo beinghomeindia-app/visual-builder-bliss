@@ -107,9 +107,9 @@ const AppHeader = () => {
                 <ChefHat className="w-4 h-4 mr-2" />
                 My Recipes
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/k-bank")}>
+              <DropdownMenuItem onClick={() => navigate("/my-kitchen")}>
                 <Landmark className="w-4 h-4 mr-2" />
-                K-Bank
+                My Kitchen
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/info")}>
                 <Info className="w-4 h-4 mr-2" />
