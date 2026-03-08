@@ -320,76 +320,32 @@ const HomePage = () => {
 
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Social Media</h2>
-            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-              View all
-            </Button>
+            <h2 className="text-xl font-semibold text-foreground">Browse by Cuisine</h2>
+            <Link to="/recipes">
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                See all
+              </Button>
+            </Link>
           </div>
           
-          <div className="space-y-4">
-            {socialPosts.map((post) => (
-              <Card key={post.id} className="p-4 bg-card shadow-card">
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    {getSocialIcon(post.platform)}
-                    <span className="font-medium text-sm text-card-foreground">{post.user}</span>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-xs text-muted-foreground">{post.time}</span>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <p className="text-card-foreground text-sm mb-3 leading-relaxed">
-                      {post.content}
-                    </p>
-                    
-                    <div className="flex items-center gap-2 sm:gap-4 text-xs text-muted-foreground flex-wrap">
-                      <button className="flex items-center gap-1 hover:text-primary transition touch-manipulation active:scale-95">
-                        <span>❤️</span>
-                        <span>{post.likes} likes</span>
-                      </button>
-                      <button className="hover:text-primary transition touch-manipulation active:scale-95">
-                        Comment
-                      </button>
-                      <button className="hover:text-primary transition touch-manipulation active:scale-95">
-                        Share
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {post.image && (
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={post.image}
-                        alt="Social media post"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-              </Card>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { name: "Indian", emoji: "🍛", color: "bg-orange-100 dark:bg-orange-900/30" },
+              { name: "Italian", emoji: "🍝", color: "bg-red-100 dark:bg-red-900/30" },
+              { name: "Asian", emoji: "🥢", color: "bg-amber-100 dark:bg-amber-900/30" },
+              { name: "Mexican", emoji: "🌮", color: "bg-green-100 dark:bg-green-900/30" },
+              { name: "Healthy", emoji: "🥗", color: "bg-emerald-100 dark:bg-emerald-900/30" },
+              { name: "Bakery", emoji: "🧁", color: "bg-pink-100 dark:bg-pink-900/30" },
+            ].map((cuisine) => (
+              <Link
+                key={cuisine.name}
+                to={`/recipes?search=${encodeURIComponent(cuisine.name)}`}
+                className={`${cuisine.color} rounded-xl p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform shadow-sm`}
+              >
+                <span className="text-3xl">{cuisine.emoji}</span>
+                <span className="font-medium text-sm text-foreground">{cuisine.name}</span>
+              </Link>
             ))}
-          </div>
-          
-          <div className="text-center mt-6">
-            <p className="text-sm text-muted-foreground mb-3">
-              Connect with us on social media for more recipes and cooking tips!
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Instagram className="w-4 h-4" />
-                Follow
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Twitter className="w-4 h-4" />
-                Follow
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Facebook className="w-4 h-4" />
-                Like
-              </Button>
-            </div>
           </div>
         </section>
       </main>

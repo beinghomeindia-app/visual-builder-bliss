@@ -352,9 +352,6 @@ const RecipeDetailPage = () => {
         </section>
 
         <div className="flex gap-3">
-          <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-            Start Cooking
-          </Button>
           <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="px-6 gap-2">

@@ -65,22 +65,21 @@ const BottomNavigation = () => {
     setRandomRecipe(null);
   };
 
-  // Mobile navigation items (with K-Bank button, YouTube Shorts instead of Favorites, What to Cook instead of Profile)
+  // Navigation items: Home | Recipes | What to Cook (center, large) | Favorites | Profile
   const mobileNavItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: Utensils, label: "K-Bank", path: "/k-bank", isSpecial: true },
-    { icon: Video, label: "YouTube Shorts", path: "/profile?tab=shorts", isShorts: true },
-    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true },
+    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true, isCenter: true },
+    { icon: Heart, label: "Favorites", path: "/favorites" },
+    { icon: User, label: "Profile", path: "/profile" },
   ];
 
-  // Desktop navigation items (with K-Bank instead of Create, YouTube Shorts instead of Favorites, What to Cook instead of Profile)
   const desktopNavItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: Utensils, label: "K-Bank", path: "/k-bank" },
-    { icon: Video, label: "YouTube Shorts", path: "/profile?tab=shorts", isShorts: true },
-    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true },
+    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true, isCenter: true },
+    { icon: Heart, label: "Favorites", path: "/favorites" },
+    { icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (
