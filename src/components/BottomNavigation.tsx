@@ -1,4 +1,4 @@
-import { Home, BookOpen, ChefHat, User, Plus, Utensils, Video } from "lucide-react";
+import { Home, BookOpen, ChefHat, User, Search, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { RecipeService, type RandomRecipeResponse } from "@/api/recipeService";
@@ -65,22 +65,21 @@ const BottomNavigation = () => {
     setRandomRecipe(null);
   };
 
-  // Mobile navigation items (with K-Bank button, YouTube Shorts instead of Favorites, What to Cook instead of Profile)
+  // Navigation items: Home | Recipes | What to Cook (center, large) | Favorites | Profile
   const mobileNavItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: Utensils, label: "K-Bank", path: "/k-bank", isSpecial: true },
-    { icon: Video, label: "YouTube Shorts", path: "/profile?tab=shorts", isShorts: true },
-    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true },
+    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true, isCenter: true },
+    { icon: Heart, label: "Favorites", path: "/favorites" },
+    { icon: User, label: "Profile", path: "/profile" },
   ];
 
-  // Desktop navigation items (with K-Bank instead of Create, YouTube Shorts instead of Favorites, What to Cook instead of Profile)
   const desktopNavItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: Utensils, label: "K-Bank", path: "/k-bank" },
-    { icon: Video, label: "YouTube Shorts", path: "/profile?tab=shorts", isShorts: true },
-    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true },
+    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true, isCenter: true },
+    { icon: Heart, label: "Favorites", path: "/favorites" },
+    { icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (
@@ -95,25 +94,23 @@ const BottomNavigation = () => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
 
-                // Handle What to Cook button
+                // Handle What to Cook button (center, double size)
                 if (item.isWhatToCook) {
                   return (
                     <button
                       key={item.label}
                       onClick={handleWhatToCook}
-                      className={`relative flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-300 touch-manipulation min-w-[56px] text-muted-foreground hover:text-foreground`}
+                      className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 touch-manipulation min-w-[64px] text-primary-foreground"
                     >
-                      <div className="relative z-10 transition-all duration-300">
-                        <Icon size={20} strokeWidth={2} />
+                      <div className="bg-primary rounded-full p-3 -mt-4 shadow-lg">
+                        <Icon size={24} strokeWidth={2.5} />
                       </div>
-                      <span className="relative z-10 text-[10px] font-medium transition-all duration-300">
+                      <span className="text-[10px] font-semibold text-foreground mt-0.5">
                         {item.label}
                       </span>
                     </button>
                   );
                 }
-
-                // YouTube Shorts button - handled as regular link below
 
                 return (
                   <Link
@@ -125,28 +122,13 @@ const BottomNavigation = () => {
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    {/* Active indicator - elevated background */}
                     {active && (
                       <div className="absolute inset-0 bg-primary/10 rounded-xl -top-3 shadow-lg border-2 border-primary/20" />
                     )}
-
-                    {/* Icon container with special styling for K-Bank button */}
-                    <div className={`relative z-10 transition-all duration-300 ${
-                      item.isSpecial && active
-                        ? "bg-primary text-primary-foreground rounded-full p-2 -mt-2 shadow-lg scale-110"
-                        : item.isSpecial
-                        ? "bg-primary/90 text-primary-foreground rounded-full p-2 -mt-2 shadow-md"
-                        : active
-                        ? "scale-110"
-                        : ""
-                    }`}>
-                      <Icon size={item.isSpecial ? 22 : 20} strokeWidth={active ? 2.5 : 2} />
+                    <div className={`relative z-10 transition-all duration-300 ${active ? "scale-110" : ""}`}>
+                      <Icon size={20} strokeWidth={active ? 2.5 : 2} />
                     </div>
-
-                    {/* Label */}
-                    <span className={`relative z-10 text-[10px] font-medium transition-all duration-300 ${
-                      active ? "font-semibold" : ""
-                    } ${item.isSpecial ? "mt-1" : ""}`}>
+                    <span className={`relative z-10 text-[10px] font-medium transition-all duration-300 ${active ? "font-semibold" : ""}`}>
                       {item.label}
                     </span>
                   </Link>

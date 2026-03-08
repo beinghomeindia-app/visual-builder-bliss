@@ -273,71 +273,26 @@ const RecipeDetailPage = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-lg p-4 mb-6 shadow-card">
-          <div className="flex items-center gap-2 text-card-foreground">
-            <span className="font-semibold">Nutrition</span>
-            <span>-</span>
-            <span className="text-muted-foreground">Calories</span>
-            <span>-</span>
-            <span className="font-semibold">{recipe.calories}</span>
-          </div>
-        </div>
+        {/* Nutrition section - single card only (duplicate inline row removed) */}
 
         {recipe.youtube_url && getEmbedUrl(recipe.youtube_url) && (
-          <>
-            {/* Mobile YouTube Video - Keep current implementation */}
-            <div className="mb-6 md:hidden">
-              <div className="bg-card rounded-lg p-4 shadow-card">
-                <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
-                  <Youtube className="w-5 h-5 text-primary" />
-                  Video Tutorial
-                </h3>
-                <div className="aspect-video w-full">
-                  <iframe
-                    src={getEmbedUrl(recipe.youtube_url)}
-                    title="Recipe Video Tutorial"
-                    className="w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop Floating YouTube Video */}
-            <div className="hidden md:block fixed top-4 right-4 z-40 w-80 bg-card rounded-lg shadow-lg overflow-hidden">
-              <div className="bg-card p-2 flex items-center justify-between border-b">
-                <h4 className="text-sm font-medium text-card-foreground flex items-center gap-2">
-                  <Youtube className="w-4 h-4 text-primary" />
-                  Video Tutorial
-                </h4>
-                <button
-                  onClick={() => {
-                    const iframe = document.querySelector('#floating-video') as HTMLIFrameElement;
-                    if (iframe) {
-                      // Toggle play/pause by reloading iframe (simple implementation)
-                      const currentSrc = iframe.src;
-                      iframe.src = '';
-                      setTimeout(() => iframe.src = currentSrc, 100);
-                    }
-                  }}
-                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-                >
-                  Toggle
-                </button>
-              </div>
-              <div className="aspect-video">
+          <div className="mb-6">
+            <div className="bg-card rounded-lg p-4 shadow-card">
+              <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+                <Youtube className="w-5 h-5 text-primary" />
+                Video Tutorial
+              </h3>
+              <div className="aspect-video w-full">
                 <iframe
-                  id="floating-video"
-                  src={getEmbedUrl(recipe.youtube_url)}
+                  src={getEmbedUrl(recipe.youtube_url)!}
                   title="Recipe Video Tutorial"
-                  className="w-full h-full"
+                  className="w-full h-full rounded-lg"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {recipe.calories && (
@@ -354,31 +309,29 @@ const RecipeDetailPage = () => {
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-foreground mb-4">Ingredients</h2>
-          <div className="bg-card rounded-lg shadow-card overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left p-3 font-semibold text-card-foreground">Ingredient</th>
-                  <th className="text-right p-3 font-semibold text-card-foreground">Quantity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recipe.ingredients && recipe.ingredients.map((ingredient, index) => {
-                  const scaledQuantity = getScaledQuantity(parseFloat(ingredient.quantity.toString()) || 0, recipe.servings);
-                  return (
-                    <tr key={index} className={index % 2 === 0 ? "bg-card" : "bg-accent/10"}>
-                      <td className="p-3 text-card-foreground capitalize">{ingredient.name}</td>
-                      <td className="p-3 text-right text-card-foreground">
-                        {!ingredient.quantity || ingredient.quantity === "0" ?
-                          ingredient.unit :
-                          formatQuantity(scaledQuantity, ingredient.unit)
-                        }
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="bg-card rounded-lg shadow-card p-4 space-y-2">
+            {recipe.ingredients && recipe.ingredients.map((ingredient, index) => {
+              const scaledQuantity = getScaledQuantity(parseFloat(ingredient.quantity.toString()) || 0, recipe.servings);
+              const quantityText = !ingredient.quantity || ingredient.quantity === "0"
+                ? ingredient.unit
+                : formatQuantity(scaledQuantity, ingredient.unit);
+              return (
+                <label
+                  key={index}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors group"
+                >
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 rounded border-2 border-primary accent-primary cursor-pointer flex-shrink-0"
+                  />
+                  <span className="text-card-foreground capitalize group-has-[:checked]:line-through group-has-[:checked]:text-muted-foreground transition-colors">
+                    {quantityText && <span className="font-medium">{quantityText}</span>}
+                    {quantityText && " "}
+                    {ingredient.name}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </section>
 
@@ -399,9 +352,6 @@ const RecipeDetailPage = () => {
         </section>
 
         <div className="flex gap-3">
-          <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
-            Start Cooking
-          </Button>
           <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="px-6 gap-2">

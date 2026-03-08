@@ -1,8 +1,8 @@
-import { Search, ChefHat, Instagram, Twitter, Facebook, Plus } from "lucide-react";
+import { Search, ChefHat, Plus } from "lucide-react";
 import InfoIconButton from "../components/ui/InfoIconButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+
 import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
@@ -178,49 +178,6 @@ const HomePage = () => {
     setRandomRecipe(null);
   };
 
-  // Placeholder social media posts
-  const socialPosts = [
-    {
-      id: 1,
-      platform: "instagram",
-      user: "@recipemasters",
-      content: "Check out this amazing pasta dish! 🍝 Simple ingredients, incredible flavor. What's your favorite comfort food?",
-      likes: 124,
-      time: "2h ago",
-      image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop"
-    },
-    {
-      id: 2,
-      platform: "twitter",
-      user: "@healthyeats",
-      content: "Starting your morning right with this nutritious breakfast bowl! 🥣 Packed with oats, fresh fruits, and energy for the day ahead.",
-      likes: 89,
-      time: "4h ago",
-      image: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=400&h=300&fit=crop"
-    },
-    {
-      id: 3,
-      platform: "facebook",
-      user: "Cooking Community",
-      content: "Weekend cooking tip: Prep your ingredients in advance for stress-free weekday meals! What's your favorite meal prep hack?",
-      likes: 67,
-      time: "1d ago",
-      image: null
-    }
-  ];
-
-  const getSocialIcon = (platform: string) => {
-    switch (platform) {
-      case "instagram":
-        return <Instagram className="w-4 h-4 text-pink-500" />;
-      case "twitter":
-        return <Twitter className="w-4 h-4 text-blue-500" />;
-      case "facebook":
-        return <Facebook className="w-4 h-4 text-blue-600" />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <div
@@ -237,20 +194,19 @@ const HomePage = () => {
         <div className="px-4 py-6">
           {/* Logo and Info Button Row */}
           <div className="flex items-center justify-between mb-6">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
-              src={beingHomeLogo}
-              alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            {/* Being Home Logo + App Name */}
+            <div className="flex items-center gap-3">
+              <img 
+                src={beingHomeLogo}
+                alt="Being Home Logo" 
+                className="h-10 w-10 object-cover rounded-full"
+                onError={(e) => {
+                  console.error('Logo failed to load from:', beingHomeLogo);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <span className="text-lg font-bold text-foreground tracking-tight">Being Home Foods</span>
+            </div>
             {/* Info Button - Extreme Right */}
             <InfoIconButton />
           </div>
@@ -321,76 +277,32 @@ const HomePage = () => {
 
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Social Media</h2>
-            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-              View all
-            </Button>
+            <h2 className="text-xl font-semibold text-foreground">Browse by Cuisine</h2>
+            <Link to="/recipes">
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                See all
+              </Button>
+            </Link>
           </div>
           
-          <div className="space-y-4">
-            {socialPosts.map((post) => (
-              <Card key={post.id} className="p-4 bg-card shadow-card">
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    {getSocialIcon(post.platform)}
-                    <span className="font-medium text-sm text-card-foreground">{post.user}</span>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-xs text-muted-foreground">{post.time}</span>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <p className="text-card-foreground text-sm mb-3 leading-relaxed">
-                      {post.content}
-                    </p>
-                    
-                    <div className="flex items-center gap-2 sm:gap-4 text-xs text-muted-foreground flex-wrap">
-                      <button className="flex items-center gap-1 hover:text-primary transition touch-manipulation active:scale-95">
-                        <span>❤️</span>
-                        <span>{post.likes} likes</span>
-                      </button>
-                      <button className="hover:text-primary transition touch-manipulation active:scale-95">
-                        Comment
-                      </button>
-                      <button className="hover:text-primary transition touch-manipulation active:scale-95">
-                        Share
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {post.image && (
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={post.image}
-                        alt="Social media post"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-              </Card>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { name: "Indian", emoji: "🍛", color: "bg-orange-100 dark:bg-orange-900/30" },
+              { name: "Italian", emoji: "🍝", color: "bg-red-100 dark:bg-red-900/30" },
+              { name: "Asian", emoji: "🥢", color: "bg-amber-100 dark:bg-amber-900/30" },
+              { name: "Mexican", emoji: "🌮", color: "bg-green-100 dark:bg-green-900/30" },
+              { name: "Healthy", emoji: "🥗", color: "bg-emerald-100 dark:bg-emerald-900/30" },
+              { name: "Bakery", emoji: "🧁", color: "bg-pink-100 dark:bg-pink-900/30" },
+            ].map((cuisine) => (
+              <Link
+                key={cuisine.name}
+                to={`/recipes?search=${encodeURIComponent(cuisine.name)}`}
+                className={`${cuisine.color} rounded-xl p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform shadow-sm`}
+              >
+                <span className="text-3xl">{cuisine.emoji}</span>
+                <span className="font-medium text-sm text-foreground">{cuisine.name}</span>
+              </Link>
             ))}
-          </div>
-          
-          <div className="text-center mt-6">
-            <p className="text-sm text-muted-foreground mb-3">
-              Connect with us on social media for more recipes and cooking tips!
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Instagram className="w-4 h-4" />
-                Follow
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Twitter className="w-4 h-4" />
-                Follow
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Facebook className="w-4 h-4" />
-                Like
-              </Button>
-            </div>
           </div>
         </section>
       </main>
