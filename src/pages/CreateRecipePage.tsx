@@ -319,8 +319,7 @@ const CreateRecipePage = () => {
           </Link>
           <h1 className="text-xl font-semibold text-foreground">Create Recipe</h1>
         </div>
-        </div>
-      </header>
+      </div>
 
       <main className="px-4 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
