@@ -93,7 +93,7 @@ const BottomNavigation = () => {
                     }`}
                   >
                     {active && (
-                      <div className="absolute inset-0 bg-primary/10 rounded-xl -top-3 shadow-lg border-2 border-primary/20" />
+                      <div className="absolute inset-0 bg-primary/10 rounded-xl border-2 border-primary/20" />
                     )}
                     <div className={`relative z-10 transition-all duration-300 ${active ? "scale-110" : ""}`}>
                       <Icon size={20} strokeWidth={active ? 2.5 : 2} />
