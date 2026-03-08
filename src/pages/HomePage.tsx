@@ -237,20 +237,19 @@ const HomePage = () => {
         <div className="px-4 py-6">
           {/* Logo and Info Button Row */}
           <div className="flex items-center justify-between mb-6">
-            {/* Being Home Logo - Extreme Left */}
-            <img 
-              src={beingHomeLogo}
-              alt="Being Home Logo" 
-              className="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 object-cover rounded-full"
-              style={{ 
-                transform: 'scale(1.5, 1.5)',
-                transformOrigin: 'left center'
-              }}
-              onError={(e) => {
-                console.error('Logo failed to load from:', beingHomeLogo);
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            {/* Being Home Logo + App Name */}
+            <div className="flex items-center gap-3">
+              <img 
+                src={beingHomeLogo}
+                alt="Being Home Logo" 
+                className="h-10 w-10 object-cover rounded-full"
+                onError={(e) => {
+                  console.error('Logo failed to load from:', beingHomeLogo);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <span className="text-lg font-bold text-foreground tracking-tight">Being Home Foods</span>
+            </div>
             {/* Info Button - Extreme Right */}
             <InfoIconButton />
           </div>
