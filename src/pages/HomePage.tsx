@@ -2,7 +2,7 @@ import { Search, ChefHat, Plus } from "lucide-react";
 import InfoIconButton from "../components/ui/InfoIconButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+
 import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import MobileHeader from "@/components/MobileHeader";
