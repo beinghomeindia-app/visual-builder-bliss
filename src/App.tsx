@@ -43,6 +43,11 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/k-bank" element={<KBankPage />} />
+          <Route path="/notifications" element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/favorites" element={
             <ProtectedRoute>
               <FavoritesPage />
