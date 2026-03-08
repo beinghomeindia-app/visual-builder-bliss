@@ -1,4 +1,4 @@
-import { User, Bell, Heart, BellDot } from "lucide-react";
+import { User, Bell, BellDot, Info, Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AuthService } from "@/api/auth";
 import { toast } from "sonner";
-import InfoIconButton from "@/components/ui/InfoIconButton";
 import beingHomeLogo from "/beinghomelogo.jpeg";
 
 const AppHeader = () => {
@@ -62,14 +61,13 @@ const AppHeader = () => {
           </span>
         </div>
 
-        {/* Right: Info, Favorites, Notifications, Profile */}
+        {/* Right: Notifications, Profile */}
         <div className="flex items-center gap-1">
-
           {/* Notifications */}
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/profile?tab=notifications")}
+            onClick={() => navigate("/notifications")}
             className="relative p-2 hover:bg-accent"
           >
             {unreadCount > 0 ? (
@@ -108,10 +106,18 @@ const AppHeader = () => {
               <DropdownMenuItem onClick={() => navigate("/profile?tab=recipes")}>
                 My Recipes
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/k-bank")}>
+                <Landmark className="w-4 h-4 mr-2" />
+                K-Bank
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/info")}>
+                <Info className="w-4 h-4 mr-2" />
+                About Us
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="text-red-600 focus:text-red-600"
+                className="text-destructive focus:text-destructive"
               >
                 Logout
               </DropdownMenuItem>
