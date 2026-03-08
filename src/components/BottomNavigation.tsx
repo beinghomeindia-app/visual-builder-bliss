@@ -1,24 +1,8 @@
-import { Home, BookOpen, ChefHat, User, Search, Heart } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { RecipeService, type RandomRecipeResponse } from "@/api/recipeService";
-import { toast } from "sonner";
-import RandomRecipeModal from "@/components/RandomRecipeModal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Home, BookOpen, Plus, Heart } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const BottomNavigation = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
-  const [randomRecipe, setRandomRecipe] = useState<RandomRecipeResponse | null>(null);
-  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") return true;
@@ -26,89 +10,38 @@ const BottomNavigation = () => {
     return false;
   };
 
-  const handleWhatToCook = async () => {
-    setIsRandomModalOpen(true);
-    await fetchRandomRecipe();
-  };
-
-  const fetchRandomRecipe = async () => {
-    setIsLoadingRandom(true);
-    try {
-      const response = await RecipeService.getRandomRecipe();
-      if (response.success && response.data) {
-        setRandomRecipe(response.data);
-      } else {
-        toast.error(response.message || "Failed to get random recipe");
-        setRandomRecipe(null);
-      }
-    } catch (error) {
-      console.error('Error fetching random recipe:', error);
-      toast.error("Failed to get random recipe. Please try again.");
-      setRandomRecipe(null);
-    } finally {
-      setIsLoadingRandom(false);
-    }
-  };
-
-  const handleStartCooking = (recipeId: number) => {
-    setIsRandomModalOpen(false);
-    navigate(`/recipes/${recipeId}`);
-  };
-
-  const handleTryAnother = async () => {
-    setRandomRecipe(null);
-    await fetchRandomRecipe();
-  };
-
-  const handleCloseModal = () => {
-    setIsRandomModalOpen(false);
-    setRandomRecipe(null);
-  };
-
-  // Navigation items: Home | Recipes | What to Cook (center, large) | Favorites | Profile
-  const mobileNavItems = [
+  const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true, isCenter: true },
+    { icon: Plus, label: "Add", path: "/create-recipe", isCenter: true },
     { icon: Heart, label: "Favorites", path: "/favorites" },
-    { icon: User, label: "Profile", path: "/profile" },
-  ];
-
-  const desktopNavItems = [
-    { icon: Home, label: "Home", path: "/" },
-    { icon: BookOpen, label: "Recipes", path: "/recipes" },
-    { icon: ChefHat, label: "What to Cook", path: "#", isWhatToCook: true, isCenter: true },
-    { icon: Heart, label: "Favorites", path: "/favorites" },
-    { icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (
     <>
-      {/* Mobile Navigation - Floating */}
+      {/* Mobile Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-        {/* Floating container with gap from bottom */}
         <div className="px-4 pb-6">
           <div className="bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl">
             <div className="flex items-center justify-around h-16 px-2">
-              {mobileNavItems.map((item) => {
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
 
-                // Handle What to Cook button (center, double size)
-                if (item.isWhatToCook) {
+                if (item.isCenter) {
                   return (
-                    <button
+                    <Link
                       key={item.label}
-                      onClick={handleWhatToCook}
-                      className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 touch-manipulation min-w-[64px] text-primary-foreground"
+                      to={item.path}
+                      className="relative flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-300 touch-manipulation min-w-[64px]"
                     >
-                      <div className="bg-primary rounded-full p-3 -mt-4 shadow-lg">
+                      <div className="bg-primary rounded-full p-3 -mt-4 shadow-lg text-primary-foreground">
                         <Icon size={24} strokeWidth={2.5} />
                       </div>
                       <span className="text-[10px] font-semibold text-foreground mt-0.5">
                         {item.label}
                       </span>
-                    </button>
+                    </Link>
                   );
                 }
 
@@ -139,32 +72,16 @@ const BottomNavigation = () => {
         </div>
       </nav>
 
-      {/* Desktop Navigation - Traditional */}
+      {/* Desktop Navigation */}
       <nav className="hidden lg:block fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 shadow-lg">
         <div className="flex items-center justify-around h-16 max-w-screen-xl mx-auto px-2">
-          {desktopNavItems.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
-            
-            // Handle What to Cook button
-            if (item.isWhatToCook) {
-              return (
-                <button
-                  key={item.label}
-                  onClick={handleWhatToCook}
-                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                >
-                  <Icon size={20} />
-                  <span className="text-xs font-medium">{item.label}</span>
-                </button>
-              );
-            }
 
-            // YouTube Shorts button - handled as regular link below
-            
             return (
               <Link
-                key={item.path}
+                key={item.path || item.label}
                 to={item.path}
                 className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] ${
                   active
@@ -179,16 +96,6 @@ const BottomNavigation = () => {
           })}
         </div>
       </nav>
-
-      {/* Random Recipe Modal */}
-      <RandomRecipeModal
-        isOpen={isRandomModalOpen}
-        onClose={handleCloseModal}
-        recipe={randomRecipe}
-        isLoading={isLoadingRandom}
-        onStartCooking={handleStartCooking}
-        onTryAnother={handleTryAnother}
-      />
     </>
   );
 };

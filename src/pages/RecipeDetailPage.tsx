@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import StarRating from "@/components/StarRating";
 import BottomNavigation from "@/components/BottomNavigation";
-import MobileHeader from "@/components/MobileHeader";
+import AppHeader from "@/components/AppHeader";
 import FavoriteHeartButton from "@/components/ui/FavoriteHeartButton";
 import RatingInput from "@/components/RatingInput";
 import RatingDisplay from "@/components/RatingDisplay";
