@@ -1,4 +1,4 @@
-import { Home, BookOpen, ChefHat, User, Plus, Utensils, Video } from "lucide-react";
+import { Home, BookOpen, ChefHat, User, Search, Heart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { RecipeService, type RandomRecipeResponse } from "@/api/recipeService";
