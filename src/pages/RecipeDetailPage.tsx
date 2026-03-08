@@ -351,55 +351,6 @@ const RecipeDetailPage = () => {
           </div>
         </section>
 
-        <div className="flex gap-3">
-          <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="px-6 gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Rate the Recipe
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Report Recipe Issue</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="bg-accent/20 p-3 rounded-lg text-sm">
-                  <p><strong>Recipe:</strong> {recipe.name}</p>
-                  <p><strong>Category:</strong> {recipe.categories?.[0]}</p>
-                  <p><strong>Recipe ID:</strong> {recipe.recipe_id}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="issue-description">Issue Description</Label>
-                  <Textarea
-                    id="issue-description"
-                    placeholder="Please describe the issue you found with this recipe (e.g., incorrect ingredients, missing steps, cooking time issues, etc.)"
-                    value={issueDescription}
-                    onChange={(e) => setIssueDescription(e.target.value)}
-                    className="min-h-[100px]"
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsReportDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleReportSubmit}
-                    disabled={!issueDescription.trim()}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    Submit Report
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
 
         {/* Rating Section */}
         <section className="mb-8">
