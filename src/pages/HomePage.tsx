@@ -178,49 +178,6 @@ const HomePage = () => {
     setRandomRecipe(null);
   };
 
-  // Placeholder social media posts
-  const socialPosts = [
-    {
-      id: 1,
-      platform: "instagram",
-      user: "@recipemasters",
-      content: "Check out this amazing pasta dish! 🍝 Simple ingredients, incredible flavor. What's your favorite comfort food?",
-      likes: 124,
-      time: "2h ago",
-      image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=300&fit=crop"
-    },
-    {
-      id: 2,
-      platform: "twitter",
-      user: "@healthyeats",
-      content: "Starting your morning right with this nutritious breakfast bowl! 🥣 Packed with oats, fresh fruits, and energy for the day ahead.",
-      likes: 89,
-      time: "4h ago",
-      image: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=400&h=300&fit=crop"
-    },
-    {
-      id: 3,
-      platform: "facebook",
-      user: "Cooking Community",
-      content: "Weekend cooking tip: Prep your ingredients in advance for stress-free weekday meals! What's your favorite meal prep hack?",
-      likes: 67,
-      time: "1d ago",
-      image: null
-    }
-  ];
-
-  const getSocialIcon = (platform: string) => {
-    switch (platform) {
-      case "instagram":
-        return <Instagram className="w-4 h-4 text-pink-500" />;
-      case "twitter":
-        return <Twitter className="w-4 h-4 text-blue-500" />;
-      case "facebook":
-        return <Facebook className="w-4 h-4 text-blue-600" />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <div
