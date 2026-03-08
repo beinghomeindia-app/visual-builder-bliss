@@ -276,60 +276,23 @@ const RecipeDetailPage = () => {
         {/* Nutrition section - single card only (duplicate inline row removed) */}
 
         {recipe.youtube_url && getEmbedUrl(recipe.youtube_url) && (
-          <>
-            {/* Mobile YouTube Video - Keep current implementation */}
-            <div className="mb-6 md:hidden">
-              <div className="bg-card rounded-lg p-4 shadow-card">
-                <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
-                  <Youtube className="w-5 h-5 text-primary" />
-                  Video Tutorial
-                </h3>
-                <div className="aspect-video w-full">
-                  <iframe
-                    src={getEmbedUrl(recipe.youtube_url)}
-                    title="Recipe Video Tutorial"
-                    className="w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop Floating YouTube Video */}
-            <div className="hidden md:block fixed top-4 right-4 z-40 w-80 bg-card rounded-lg shadow-lg overflow-hidden">
-              <div className="bg-card p-2 flex items-center justify-between border-b">
-                <h4 className="text-sm font-medium text-card-foreground flex items-center gap-2">
-                  <Youtube className="w-4 h-4 text-primary" />
-                  Video Tutorial
-                </h4>
-                <button
-                  onClick={() => {
-                    const iframe = document.querySelector('#floating-video') as HTMLIFrameElement;
-                    if (iframe) {
-                      // Toggle play/pause by reloading iframe (simple implementation)
-                      const currentSrc = iframe.src;
-                      iframe.src = '';
-                      setTimeout(() => iframe.src = currentSrc, 100);
-                    }
-                  }}
-                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-                >
-                  Toggle
-                </button>
-              </div>
-              <div className="aspect-video">
+          <div className="mb-6">
+            <div className="bg-card rounded-lg p-4 shadow-card">
+              <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+                <Youtube className="w-5 h-5 text-primary" />
+                Video Tutorial
+              </h3>
+              <div className="aspect-video w-full">
                 <iframe
-                  id="floating-video"
-                  src={getEmbedUrl(recipe.youtube_url)}
+                  src={getEmbedUrl(recipe.youtube_url)!}
                   title="Recipe Video Tutorial"
-                  className="w-full h-full"
+                  className="w-full h-full rounded-lg"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {recipe.calories && (
