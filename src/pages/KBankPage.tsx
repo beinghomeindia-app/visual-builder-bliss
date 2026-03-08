@@ -1,11 +1,7 @@
-import { ArrowLeft, Utensils, Leaf, Fish, Cookie, Soup, Users, Heart, Sprout } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Utensils, Leaf, Fish, Cookie, Soup, Users, Heart, Sprout } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BottomNavigation from "@/components/BottomNavigation";
-import MobileHeader from "@/components/MobileHeader";
-import { Link } from "react-router-dom";
-import InfoIconButton from "../components/ui/InfoIconButton";
-import beingHomeLogo from "/beinghomelogo.jpeg";
+import AppHeader from "@/components/AppHeader";
 
 const KBankPage = () => {
   const foodCategories = [
