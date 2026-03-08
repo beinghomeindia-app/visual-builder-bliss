@@ -309,31 +309,29 @@ const RecipeDetailPage = () => {
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-foreground mb-4">Ingredients</h2>
-          <div className="bg-card rounded-lg shadow-card overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left p-3 font-semibold text-card-foreground">Ingredient</th>
-                  <th className="text-right p-3 font-semibold text-card-foreground">Quantity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recipe.ingredients && recipe.ingredients.map((ingredient, index) => {
-                  const scaledQuantity = getScaledQuantity(parseFloat(ingredient.quantity.toString()) || 0, recipe.servings);
-                  return (
-                    <tr key={index} className={index % 2 === 0 ? "bg-card" : "bg-accent/10"}>
-                      <td className="p-3 text-card-foreground capitalize">{ingredient.name}</td>
-                      <td className="p-3 text-right text-card-foreground">
-                        {!ingredient.quantity || ingredient.quantity === "0" ?
-                          ingredient.unit :
-                          formatQuantity(scaledQuantity, ingredient.unit)
-                        }
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="bg-card rounded-lg shadow-card p-4 space-y-2">
+            {recipe.ingredients && recipe.ingredients.map((ingredient, index) => {
+              const scaledQuantity = getScaledQuantity(parseFloat(ingredient.quantity.toString()) || 0, recipe.servings);
+              const quantityText = !ingredient.quantity || ingredient.quantity === "0"
+                ? ingredient.unit
+                : formatQuantity(scaledQuantity, ingredient.unit);
+              return (
+                <label
+                  key={index}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors group"
+                >
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 rounded border-2 border-primary accent-primary cursor-pointer flex-shrink-0"
+                  />
+                  <span className="text-card-foreground capitalize group-has-[:checked]:line-through group-has-[:checked]:text-muted-foreground transition-colors">
+                    {quantityText && <span className="font-medium">{quantityText}</span>}
+                    {quantityText && " "}
+                    {ingredient.name}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </section>
 
