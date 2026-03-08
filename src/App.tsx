@@ -17,6 +17,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import NotFound from "./pages/NotFound";
+import NotificationsPage from "./pages/NotificationsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
