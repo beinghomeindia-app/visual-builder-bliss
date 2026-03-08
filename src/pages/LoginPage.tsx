@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import InfoIconButton from "../components/ui/InfoIconButton";
 import CountryCodeSelector from "../components/ui/CountryCodeSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Loader2, Eye, EyeOff, ChefHat } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import { AuthService } from "@/api/auth";
 import { toast } from "sonner";
 import cookingThemeImg from "@/assets/cooking-theme-login.jpg";
+import beingHomeLogo from "/beinghomelogo.jpeg";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -31,13 +31,9 @@ export default function LoginPage() {
       return;
     }
     setPhoneNumber(value);
-    if (value.length === 0) {
-      setPhoneError("");
-    } else if (value.length < 10) {
-      setPhoneError("Phone number must be exactly 10 digits");
-    } else {
-      setPhoneError("");
-    }
+    if (value.length === 0) setPhoneError("");
+    else if (value.length < 10) setPhoneError("Phone number must be exactly 10 digits");
+    else setPhoneError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,46 +65,49 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-20 flex flex-col">
-      {/* Hero image section */}
-      <div className="relative w-full h-56 sm:h-64 overflow-hidden">
+      {/* Hero Section - Large food image */}
+      <div className="relative w-full h-[40vh] min-h-[240px] max-h-[360px]">
         <img
           src={cookingThemeImg}
           alt="Fresh cooking ingredients and spices"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-background" />
-        
-        {/* Back button overlay */}
-        <div className="absolute top-4 left-4 z-10">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="p-2 bg-card/80 backdrop-blur-sm hover:bg-card/90 rounded-full">
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </Button>
-          </Link>
-        </div>
-        <div className="absolute top-4 right-4 z-10">
-          <div className="bg-card/80 backdrop-blur-sm rounded-full">
-            <InfoIconButton />
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
 
-        {/* Floating logo badge */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
-          <div className="bg-primary rounded-full p-4 shadow-lg border-4 border-background">
-            <ChefHat className="w-8 h-8 text-primary-foreground" />
-          </div>
+        {/* Back button */}
+        <Link to="/" className="absolute top-4 left-4 z-10">
+          <button className="p-2.5 rounded-full bg-background/70 backdrop-blur-md shadow-sm">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+        </Link>
+
+        {/* Branding on image */}
+        <div className="absolute top-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+          <img
+            src={beingHomeLogo}
+            alt="Being Home Foods"
+            className="h-10 w-10 rounded-full border-2 border-background shadow-md object-cover"
+          />
+          <span className="text-base font-bold text-white drop-shadow-lg tracking-tight">
+            Being Home Foods
+          </span>
         </div>
       </div>
 
-      {/* Login form */}
-      <main className="flex flex-1 flex-col items-center w-full px-4 pt-10 pb-4">
-        <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-center mb-1 text-foreground">Welcome Back</h1>
-          <p className="text-center text-muted-foreground text-sm mb-6">Sign in to explore delicious recipes</p>
+      {/* Form Card - overlaps hero */}
+      <div className="relative -mt-8 z-10 flex-1">
+        <div className="bg-card rounded-t-3xl shadow-lg px-6 pt-8 pb-6 min-h-full">
+          <h1 className="text-2xl font-bold text-foreground mb-1">Welcome Back 👋</h1>
+          <p className="text-muted-foreground text-sm mb-7">
+            Sign in to discover & share delicious recipes
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+            {/* Phone Number */}
+            <div className="space-y-1.5">
+              <Label htmlFor="phoneNumber" className="text-sm font-medium">
+                Phone Number
+              </Label>
               <div className="flex gap-2">
                 <CountryCodeSelector
                   value={countryCode}
@@ -118,26 +117,30 @@ export default function LoginPage() {
                 <Input
                   id="phoneNumber"
                   type="tel"
-                  placeholder="Enter phone number"
+                  placeholder="Enter 10-digit number"
                   value={phoneNumber}
                   onChange={handlePhoneNumberChange}
                   required
                   disabled={isLoading}
-                  className={`flex-1 ${phoneError ? "border-destructive" : ""}`}
+                  className={`flex-1 h-11 ${phoneError ? "border-destructive" : ""}`}
                   maxLength={10}
                 />
               </div>
-              {phoneError ? (
+              {phoneError && (
                 <p className="text-xs text-destructive">{phoneError}</p>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Enter your 10-digit phone number without the country code
-                </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            {/* Password */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </Label>
+                <a href="#" className="text-xs text-primary font-medium hover:underline">
+                  Forgot password?
+                </a>
+              </div>
               <div className="relative">
                 <Input
                   id="password"
@@ -147,38 +150,34 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="pr-10"
+                  className="h-11 pr-12"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
+                  tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <Eye className="h-5 w-5" />
                   )}
-                </Button>
+                </button>
               </div>
             </div>
 
-            <div className="text-right text-sm">
-              <a href="#" className="text-primary hover:underline font-medium">Forgot password?</a>
-            </div>
-
+            {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-11 text-base font-semibold"
+              className="w-full h-12 text-base font-semibold rounded-xl"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Logging in...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Signing in...
                 </>
               ) : (
                 "Sign In"
@@ -186,25 +185,24 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
+          {/* Register link */}
+          <div className="mt-6 text-center text-sm text-muted-foreground">
             New to Being Home Foods?{" "}
             <Link to="/register" className="text-primary font-semibold hover:underline">
               Create Account
             </Link>
           </div>
 
-          <div className="mt-4 text-center text-xs text-muted-foreground">
-            By logging in, you agree to our{" "}
-            <Link to="/terms" className="text-primary hover:underline">
-              Terms and Conditions
-            </Link>
-            {" "}and{" "}
-            <Link to="/privacy" className="text-primary hover:underline">
-              Privacy Policy
-            </Link>
+          {/* Terms */}
+          <div className="mt-4 text-center text-xs text-muted-foreground leading-relaxed">
+            By signing in, you agree to our{" "}
+            <Link to="/terms" className="text-primary hover:underline">Terms</Link>
+            {" & "}
+            <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
           </div>
         </div>
-      </main>
+      </div>
+
       <BottomNavigation />
     </div>
   );
