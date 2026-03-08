@@ -1,4 +1,4 @@
-import { User, Bell, BellDot, Info, Landmark } from "lucide-react";
+import { User, Bell, BellDot, Info, Landmark, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -104,6 +104,7 @@ const AppHeader = () => {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/profile?tab=recipes")}>
+                <ChefHat className="w-4 h-4 mr-2" />
                 My Recipes
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/k-bank")}>

@@ -12,6 +12,7 @@ import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import { NotificationService, type Notification } from "@/api/notificationService";
 import { toast } from "sonner";
 import BottomNavigation from "@/components/BottomNavigation";
+import AppHeader from "@/components/AppHeader";
 import YouTubeShortsCarousel from "@/components/YouTubeShortsCarousel";
 import type { User as UserType } from "@/api/auth";
 
@@ -239,56 +240,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-20">
-      {/* Header */}
-      <header className="bg-card shadow-sm border-b border-border">
-        <div className="px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(-1)}
-                className="p-2"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <h1 className="text-xl font-semibold text-foreground">Profile</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveTab("notifications")}
-                className="relative p-2"
-                title="Notifications"
-              >
-                {unreadCount > 0 ? (
-                  <BellDot className="w-5 h-5 text-primary" />
-                ) : (
-                  <Bell className="w-5 h-5 text-foreground" />
-                )}
-                {unreadCount > 0 && (
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </Badge>
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
       
       {/* Profile Content */}
       <main className="px-4 py-6 max-w-4xl mx-auto">
