@@ -12,6 +12,7 @@ import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import { NotificationService, type Notification } from "@/api/notificationService";
 import { toast } from "sonner";
 import BottomNavigation from "@/components/BottomNavigation";
+import AppHeader from "@/components/AppHeader";
 import YouTubeShortsCarousel from "@/components/YouTubeShortsCarousel";
 import type { User as UserType } from "@/api/auth";
 
