@@ -356,7 +356,7 @@ const RecipeDetailPage = () => {
             <DialogTrigger asChild>
               <Button variant="outline" className="px-6 gap-2">
                 <AlertTriangle className="w-4 h-4" />
-                Report Issue
+                Rate the Recipe
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
