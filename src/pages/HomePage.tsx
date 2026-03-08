@@ -1,4 +1,4 @@
-import { Search, ChefHat, Instagram, Twitter, Facebook, Plus } from "lucide-react";
+import { Search, ChefHat, Plus } from "lucide-react";
 import InfoIconButton from "../components/ui/InfoIconButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
