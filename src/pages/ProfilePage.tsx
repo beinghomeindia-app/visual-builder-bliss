@@ -37,11 +37,15 @@ const ProfilePage = () => {
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || "profile");
+  const [userTags, setUserTags] = useState<UserTag[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+  const [draggedTagIndex, setDraggedTagIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUserProfile();
     fetchUserRecipes();
     fetchNotifications();
+    fetchUserTags();
   }, []);
 
   // Update active tab when URL changes
