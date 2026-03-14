@@ -127,6 +127,70 @@ const ProfilePage = () => {
     }
   };
 
+  const fetchUserTags = async () => {
+    try {
+      setIsLoadingTags(true);
+      const response = await UserTagsService.getUserTags();
+      if (response.success && response.data) {
+        setUserTags(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user tags:", error);
+    } finally {
+      setIsLoadingTags(false);
+    }
+  };
+
+  const handleAddTag = async (tag: string) => {
+    const response = await UserTagsService.addTag(tag);
+    if (response.success) {
+      toast.success(`Tag "${tag}" added`);
+      fetchUserTags();
+    } else {
+      toast.error(response.message || "Failed to add tag");
+    }
+  };
+
+  const handleDeleteTag = async (tagId: number) => {
+    const response = await UserTagsService.deleteTag(tagId);
+    if (response.success) {
+      toast.success("Tag removed");
+      fetchUserTags();
+    } else {
+      toast.error(response.message || "Failed to remove tag");
+    }
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedTagIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedTagIndex === null || draggedTagIndex === index) return;
+    const newTags = [...userTags];
+    const [dragged] = newTags.splice(draggedTagIndex, 1);
+    newTags.splice(index, 0, dragged);
+    setUserTags(newTags);
+    setDraggedTagIndex(index);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedTagIndex(null);
+    const tagNames = userTags.map(t => t.tag);
+    const response = await UserTagsService.reorderTags(tagNames);
+    if (response.success) {
+      toast.success("Tags reordered");
+    } else {
+      toast.error("Failed to reorder tags");
+      fetchUserTags();
+    }
+  };
+
+  const availableTagsToAdd = AVAILABLE_TAGS.filter(
+    (t) => !userTags.some((ut) => ut.tag === t)
+  );
+
   const handleMarkAsRead = async (notificationId: number) => {
     try {
       const response = await NotificationService.markAsRead(notificationId);
