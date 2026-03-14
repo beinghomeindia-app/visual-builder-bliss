@@ -5,14 +5,21 @@ import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import AppHeader from "@/components/AppHeader";
 import RecipeCard from "@/components/RecipeCard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
+import { AuthService } from "@/api/auth";
+import { UserTagsService, type UserTag } from "@/api/userTagsService";
+import { AVAILABLE_TAGS, TAG_EMOJI_MAP, TAG_COLOR_MAP } from "@/data/tags";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [featuredRecipes, setFeaturedRecipes] = useState<RecipeListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userTags, setUserTags] = useState<UserTag[]>([]);
+  const [showAllTags, setShowAllTags] = useState(false);
+
+  const isLoggedIn = AuthService.isAuthenticated();
 
   useEffect(() => {
     const fetchFeaturedRecipes = async () => {
@@ -35,7 +42,29 @@ const HomePage = () => {
       }
     };
     fetchFeaturedRecipes();
-  }, []);
+
+    // Fetch user tags if logged in
+    if (isLoggedIn) {
+      UserTagsService.getUserTags().then((res) => {
+        if (res.success && res.data) {
+          setUserTags(res.data);
+        }
+      });
+    }
+  }, [isLoggedIn]);
+
+  // Tags to display: user's tags if logged in, else random 6
+  const displayTags = useMemo(() => {
+    if (isLoggedIn && userTags.length > 0) {
+      const tagNames = userTags.map((t) => t.tag);
+      return showAllTags ? tagNames : tagNames.slice(0, 6);
+    }
+    // Not logged in: show 6 random tags
+    const shuffled = [...AVAILABLE_TAGS].sort(() => Math.random() - 0.5);
+    return showAllTags ? [...AVAILABLE_TAGS] : shuffled.slice(0, 6);
+  }, [isLoggedIn, userTags, showAllTags]);
+
+  const totalTagCount = isLoggedIn && userTags.length > 0 ? userTags.length : AVAILABLE_TAGS.length;
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -102,32 +131,48 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* Browse by Tags */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-foreground">Browse by Cuisine</h2>
+            <h2 className="text-xl font-semibold text-foreground">Browse by Tags</h2>
             <Link to="/recipes">
               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">See all</Button>
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {[
-              { name: "Indian", emoji: "🍛", color: "bg-orange-100 dark:bg-orange-900/30" },
-              { name: "Italian", emoji: "🍝", color: "bg-red-100 dark:bg-red-900/30" },
-              { name: "Asian", emoji: "🥢", color: "bg-amber-100 dark:bg-amber-900/30" },
-              { name: "Mexican", emoji: "🌮", color: "bg-green-100 dark:bg-green-900/30" },
-              { name: "Healthy", emoji: "🥗", color: "bg-emerald-100 dark:bg-emerald-900/30" },
-              { name: "Bakery", emoji: "🧁", color: "bg-pink-100 dark:bg-pink-900/30" },
-            ].map((cuisine) => (
+            {displayTags.map((tag) => (
               <Link
-                key={cuisine.name}
-                to={`/recipes?search=${encodeURIComponent(cuisine.name)}`}
-                className={`${cuisine.color} rounded-xl p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform shadow-sm`}
+                key={tag}
+                to={`/recipes?tags=${encodeURIComponent(tag)}`}
+                className={`${TAG_COLOR_MAP[tag] || "bg-muted"} rounded-xl p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform shadow-sm`}
               >
-                <span className="text-3xl">{cuisine.emoji}</span>
-                <span className="font-medium text-sm text-foreground">{cuisine.name}</span>
+                <span className="text-3xl">{TAG_EMOJI_MAP[tag] || "🏷️"}</span>
+                <span className="font-medium text-sm text-foreground">{tag}</span>
               </Link>
             ))}
           </div>
+          {!showAllTags && totalTagCount > 6 && (
+            <div className="text-center mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAllTags(true)}
+              >
+                View More ({totalTagCount - 6} more)
+              </Button>
+            </div>
+          )}
+          {showAllTags && totalTagCount > 6 && (
+            <div className="text-center mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAllTags(false)}
+              >
+                Show Less
+              </Button>
+            </div>
+          )}
         </section>
       </main>
 
