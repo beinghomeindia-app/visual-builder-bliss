@@ -10,14 +10,9 @@ import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import { AuthService } from "@/api/auth";
+import { UserTagsService } from "@/api/userTagsService";
+import { AVAILABLE_TAGS } from "@/data/tags";
 import { toast } from "sonner";
-
-const AVAILABLE_INTERESTS = [
-  "Vegetarian", "Non-Vegetarian", "Vegan", "Gluten-Free", "Keto",
-  "Low-Carb", "High-Protein", "Dairy-Free", "Nut-Free", "Spicy Food",
-  "Sweet Dishes", "Healthy Eating", "Quick Meals", "Traditional Cuisine",
-  "International Cuisine", "Baking", "Grilling", "Breakfast", "Desserts"
-];
 
 export default function RegistrationPage() {
   const navigate = useNavigate();
@@ -73,6 +68,14 @@ export default function RegistrationPage() {
       );
 
       if (response.success) {
+        // After successful registration, save selected tags via API
+        if (interests.length > 0) {
+          try {
+            await UserTagsService.bulkAddTags(interests);
+          } catch (tagError) {
+            console.error("Failed to save tags:", tagError);
+          }
+        }
         toast.success("Registration successful!");
         navigate("/"); // Redirect to home page
       } else {
@@ -175,7 +178,7 @@ export default function RegistrationPage() {
               <Label>Food Interests (Optional)</Label>
               <p className="text-sm text-muted-foreground">Select your food preferences:</p>
               <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                {AVAILABLE_INTERESTS.map((interest) => (
+                {AVAILABLE_TAGS.map((interest) => (
                   <Badge
                     key={interest}
                     variant={interests.includes(interest) ? "default" : "secondary"}

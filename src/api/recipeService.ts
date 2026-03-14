@@ -76,6 +76,7 @@ export interface SearchFilters {
   meal_type?: RecipeCategory;
   veg?: boolean; // Keep for backward compatibility
   dietary_type?: string; // New dietary type filter: "Veg", "Non-Veg", "Egg", "Vegan"
+  tags?: string; // Comma-separated tag names for filtering
   page?: number;
   limit?: number;
 }
@@ -146,6 +147,7 @@ export class RecipeService {
       if (filters.meal_type) params.append('meal_type', filters.meal_type);
       if (filters.veg !== undefined) params.append('veg', filters.veg.toString());
       if (filters.dietary_type) params.append('dietary_type', filters.dietary_type);
+      if (filters.tags) params.append('tags', filters.tags);
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.limit) params.append('limit', filters.limit.toString());
 

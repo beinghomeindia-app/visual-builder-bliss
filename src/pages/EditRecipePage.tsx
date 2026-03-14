@@ -15,14 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import ImageCropper from "@/components/ImageCropper";
 import EnhancedImageUpload from "@/components/EnhancedImageUpload";
+import { AVAILABLE_TAGS } from "@/data/tags";
 
-// Pre-defined options for tags
-const COMMON_TAGS = [
-  "Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", "Keto", "Low-Carb",
-  "High-Protein", "Healthy", "Quick", "Easy", "Comfort Food", "Spicy",
-  "Sweet", "Savory", "Breakfast", "Lunch", "Dinner", "Snack", "Dessert",
-  "Appetizer", "Main Course", "Side Dish", "Soup", "Salad", "Beverage"
-];
+// Use centralized tags list
+const COMMON_TAGS = [...AVAILABLE_TAGS];
 
 const EditRecipePage = () => {
   const navigate = useNavigate();

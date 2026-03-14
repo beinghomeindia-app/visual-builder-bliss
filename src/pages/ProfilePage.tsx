@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, User, Phone, Heart, LogOut, Edit, Save, X, Bell, BellDot, Trash2, Eye, EyeOff, ChefHat, Clock, Users, Video } from "lucide-react";
+import { ArrowLeft, User, Phone, Heart, LogOut, Edit, Save, X, Bell, BellDot, Trash2, Eye, EyeOff, ChefHat, Clock, Users, Video, GripVertical, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,18 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuthService } from "@/api/auth";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import { NotificationService, type Notification } from "@/api/notificationService";
+import { UserTagsService, type UserTag } from "@/api/userTagsService";
+import { AVAILABLE_TAGS } from "@/data/tags";
 import { toast } from "sonner";
 import BottomNavigation from "@/components/BottomNavigation";
 import AppHeader from "@/components/AppHeader";
 import YouTubeShortsCarousel from "@/components/YouTubeShortsCarousel";
 import type { User as UserType } from "@/api/auth";
-
-const AVAILABLE_INTERESTS = [
-  "Vegetarian", "Non-Vegetarian", "Vegan", "Gluten-Free", "Keto",
-  "Low-Carb", "High-Protein", "Dairy-Free", "Nut-Free", "Spicy Food",
-  "Sweet Dishes", "Healthy Eating", "Quick Meals", "Traditional Cuisine",
-  "International Cuisine", "Baking", "Grilling", "Breakfast", "Desserts"
-];
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -42,11 +37,15 @@ const ProfilePage = () => {
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || "profile");
+  const [userTags, setUserTags] = useState<UserTag[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+  const [draggedTagIndex, setDraggedTagIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUserProfile();
     fetchUserRecipes();
     fetchNotifications();
+    fetchUserTags();
   }, []);
 
   // Update active tab when URL changes
@@ -127,6 +126,70 @@ const ProfilePage = () => {
       setIsLoadingNotifications(false);
     }
   };
+
+  const fetchUserTags = async () => {
+    try {
+      setIsLoadingTags(true);
+      const response = await UserTagsService.getUserTags();
+      if (response.success && response.data) {
+        setUserTags(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user tags:", error);
+    } finally {
+      setIsLoadingTags(false);
+    }
+  };
+
+  const handleAddTag = async (tag: string) => {
+    const response = await UserTagsService.addTag(tag);
+    if (response.success) {
+      toast.success(`Tag "${tag}" added`);
+      fetchUserTags();
+    } else {
+      toast.error(response.message || "Failed to add tag");
+    }
+  };
+
+  const handleDeleteTag = async (tagId: number) => {
+    const response = await UserTagsService.deleteTag(tagId);
+    if (response.success) {
+      toast.success("Tag removed");
+      fetchUserTags();
+    } else {
+      toast.error(response.message || "Failed to remove tag");
+    }
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedTagIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedTagIndex === null || draggedTagIndex === index) return;
+    const newTags = [...userTags];
+    const [dragged] = newTags.splice(draggedTagIndex, 1);
+    newTags.splice(index, 0, dragged);
+    setUserTags(newTags);
+    setDraggedTagIndex(index);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedTagIndex(null);
+    const tagNames = userTags.map(t => t.tag);
+    const response = await UserTagsService.reorderTags(tagNames);
+    if (response.success) {
+      toast.success("Tags reordered");
+    } else {
+      toast.error("Failed to reorder tags");
+      fetchUserTags();
+    }
+  };
+
+  const availableTagsToAdd = AVAILABLE_TAGS.filter(
+    (t) => !userTags.some((ut) => ut.tag === t)
+  );
 
   const handleMarkAsRead = async (notificationId: number) => {
     try {
@@ -325,44 +388,72 @@ const ProfilePage = () => {
                   <p className="text-xs text-muted-foreground">Phone number cannot be changed</p>
                 </div>
 
-                {/* Interests */}
+                {/* My Tags */}
                 <div className="space-y-3">
                   <Label className="text-foreground font-medium flex items-center gap-2">
                     <Heart className="w-4 h-4" />
-                    Interests
+                    My Tags
+                    <span className="text-xs text-muted-foreground font-normal">(drag to reorder)</span>
                   </Label>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <p className="text-sm text-muted-foreground">Select your food interests:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {AVAILABLE_INTERESTS.map((interest) => (
-                          <Badge
-                            key={interest}
-                            variant={editForm.interests.includes(interest) ? "default" : "secondary"}
-                            className={`cursor-pointer transition-colors ${
-                              editForm.interests.includes(interest)
-                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                : "hover:bg-secondary/80"
-                            }`}
-                            onClick={() => toggleInterest(interest)}
-                          >
-                            {interest}
-                          </Badge>
-                        ))}
-                      </div>
+                  
+                  {isLoadingTags ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                     </div>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {user.interests && user.interests.length > 0 ? (
-                        user.interests.map((interest) => (
-                          <Badge key={interest} variant="secondary">
-                            {interest}
-                          </Badge>
-                        ))
+                    <>
+                      {/* Current tags - draggable */}
+                      {userTags.length > 0 ? (
+                        <div className="space-y-2">
+                          {userTags.map((tag, index) => (
+                            <div
+                              key={tag.id}
+                              draggable
+                              onDragStart={() => handleDragStart(index)}
+                              onDragOver={(e) => handleDragOver(e, index)}
+                              onDragEnd={handleDragEnd}
+                              className={`flex items-center gap-2 p-2 rounded-md border border-border bg-card cursor-grab active:cursor-grabbing transition-colors ${
+                                draggedTagIndex === index ? "opacity-50" : ""
+                              }`}
+                            >
+                              <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                              <span className="text-sm text-foreground flex-1">{tag.tag}</span>
+                              <span className="text-xs text-muted-foreground">#{index + 1}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="p-1 h-auto"
+                                onClick={() => handleDeleteTag(tag.id)}
+                              >
+                                <X className="w-3 h-3 text-destructive" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       ) : (
-                        <p className="text-muted-foreground italic">No interests selected</p>
+                        <p className="text-muted-foreground italic text-sm">No tags added yet</p>
                       )}
-                    </div>
+
+                      {/* Add new tags */}
+                      {availableTagsToAdd.length > 0 && (
+                        <div className="pt-3 border-t border-border">
+                          <p className="text-sm text-muted-foreground mb-2">Add tags:</p>
+                          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                            {availableTagsToAdd.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                                onClick={() => handleAddTag(tag)}
+                              >
+                                <Plus className="w-3 h-3 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
