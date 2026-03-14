@@ -170,7 +170,7 @@ export default function RegistrationPage() {
               <Label>Food Interests (Optional)</Label>
               <p className="text-sm text-muted-foreground">Select your food preferences:</p>
               <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                {AVAILABLE_INTERESTS.map((interest) => (
+                {AVAILABLE_TAGS.map((interest) => (
                   <Badge
                     key={interest}
                     variant={interests.includes(interest) ? "default" : "secondary"}
