@@ -76,6 +76,7 @@ export interface SearchFilters {
   meal_type?: RecipeCategory;
   veg?: boolean; // Keep for backward compatibility
   dietary_type?: string; // New dietary type filter: "Veg", "Non-Veg", "Egg", "Vegan"
+  tags?: string; // Comma-separated tag names for filtering
   page?: number;
   limit?: number;
 }
