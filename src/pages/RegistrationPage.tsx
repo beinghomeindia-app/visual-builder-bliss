@@ -68,6 +68,14 @@ export default function RegistrationPage() {
       );
 
       if (response.success) {
+        // After successful registration, save selected tags via API
+        if (interests.length > 0) {
+          try {
+            await UserTagsService.bulkAddTags(interests);
+          } catch (tagError) {
+            console.error("Failed to save tags:", tagError);
+          }
+        }
         toast.success("Registration successful!");
         navigate("/"); // Redirect to home page
       } else {
