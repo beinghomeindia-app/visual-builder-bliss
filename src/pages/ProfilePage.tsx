@@ -388,44 +388,72 @@ const ProfilePage = () => {
                   <p className="text-xs text-muted-foreground">Phone number cannot be changed</p>
                 </div>
 
-                {/* Interests */}
+                {/* My Tags */}
                 <div className="space-y-3">
                   <Label className="text-foreground font-medium flex items-center gap-2">
                     <Heart className="w-4 h-4" />
-                    Interests
+                    My Tags
+                    <span className="text-xs text-muted-foreground font-normal">(drag to reorder)</span>
                   </Label>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <p className="text-sm text-muted-foreground">Select your food interests:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {AVAILABLE_INTERESTS.map((interest) => (
-                          <Badge
-                            key={interest}
-                            variant={editForm.interests.includes(interest) ? "default" : "secondary"}
-                            className={`cursor-pointer transition-colors ${
-                              editForm.interests.includes(interest)
-                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                : "hover:bg-secondary/80"
-                            }`}
-                            onClick={() => toggleInterest(interest)}
-                          >
-                            {interest}
-                          </Badge>
-                        ))}
-                      </div>
+                  
+                  {isLoadingTags ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                     </div>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {user.interests && user.interests.length > 0 ? (
-                        user.interests.map((interest) => (
-                          <Badge key={interest} variant="secondary">
-                            {interest}
-                          </Badge>
-                        ))
+                    <>
+                      {/* Current tags - draggable */}
+                      {userTags.length > 0 ? (
+                        <div className="space-y-2">
+                          {userTags.map((tag, index) => (
+                            <div
+                              key={tag.id}
+                              draggable
+                              onDragStart={() => handleDragStart(index)}
+                              onDragOver={(e) => handleDragOver(e, index)}
+                              onDragEnd={handleDragEnd}
+                              className={`flex items-center gap-2 p-2 rounded-md border border-border bg-card cursor-grab active:cursor-grabbing transition-colors ${
+                                draggedTagIndex === index ? "opacity-50" : ""
+                              }`}
+                            >
+                              <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                              <span className="text-sm text-foreground flex-1">{tag.tag}</span>
+                              <span className="text-xs text-muted-foreground">#{index + 1}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="p-1 h-auto"
+                                onClick={() => handleDeleteTag(tag.id)}
+                              >
+                                <X className="w-3 h-3 text-destructive" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       ) : (
-                        <p className="text-muted-foreground italic">No interests selected</p>
+                        <p className="text-muted-foreground italic text-sm">No tags added yet</p>
                       )}
-                    </div>
+
+                      {/* Add new tags */}
+                      {availableTagsToAdd.length > 0 && (
+                        <div className="pt-3 border-t border-border">
+                          <p className="text-sm text-muted-foreground mb-2">Add tags:</p>
+                          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                            {availableTagsToAdd.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                                onClick={() => handleAddTag(tag)}
+                              >
+                                <Plus className="w-3 h-3 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
