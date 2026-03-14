@@ -10,14 +10,9 @@ import { ArrowLeft, Loader2, Plus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import { AuthService } from "@/api/auth";
+import { UserTagsService } from "@/api/userTagsService";
+import { AVAILABLE_TAGS } from "@/data/tags";
 import { toast } from "sonner";
-
-const AVAILABLE_INTERESTS = [
-  "Vegetarian", "Non-Vegetarian", "Vegan", "Gluten-Free", "Keto",
-  "Low-Carb", "High-Protein", "Dairy-Free", "Nut-Free", "Spicy Food",
-  "Sweet Dishes", "Healthy Eating", "Quick Meals", "Traditional Cuisine",
-  "International Cuisine", "Baking", "Grilling", "Breakfast", "Desserts"
-];
 
 export default function RegistrationPage() {
   const navigate = useNavigate();
