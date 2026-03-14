@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, User, Phone, Heart, LogOut, Edit, Save, X, Bell, BellDot, Trash2, Eye, EyeOff, ChefHat, Clock, Users, Video } from "lucide-react";
+import { ArrowLeft, User, Phone, Heart, LogOut, Edit, Save, X, Bell, BellDot, Trash2, Eye, EyeOff, ChefHat, Clock, Users, Video, GripVertical, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,18 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuthService } from "@/api/auth";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import { NotificationService, type Notification } from "@/api/notificationService";
+import { UserTagsService, type UserTag } from "@/api/userTagsService";
+import { AVAILABLE_TAGS } from "@/data/tags";
 import { toast } from "sonner";
 import BottomNavigation from "@/components/BottomNavigation";
 import AppHeader from "@/components/AppHeader";
 import YouTubeShortsCarousel from "@/components/YouTubeShortsCarousel";
 import type { User as UserType } from "@/api/auth";
-
-const AVAILABLE_INTERESTS = [
-  "Vegetarian", "Non-Vegetarian", "Vegan", "Gluten-Free", "Keto",
-  "Low-Carb", "High-Protein", "Dairy-Free", "Nut-Free", "Spicy Food",
-  "Sweet Dishes", "Healthy Eating", "Quick Meals", "Traditional Cuisine",
-  "International Cuisine", "Baking", "Grilling", "Breakfast", "Desserts"
-];
 
 const ProfilePage = () => {
   const navigate = useNavigate();
