@@ -19,13 +19,14 @@ const RecipesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedDietaryType, setSelectedDietaryType] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [selectedTag, setSelectedTag] = useState(searchParams.get('tags') || '');
 
   const categories = ["All", ...RECIPE_CATEGORIES];
   const dietaryTypes = ["All", "Veg", "Non-Veg", "Egg", "Vegan"];
 
   useEffect(() => {
     fetchRecipes();
-  }, [selectedCategory, selectedDietaryType, searchQuery]);
+  }, [selectedCategory, selectedDietaryType, searchQuery, selectedTag]);
 
   const fetchRecipes = async () => {
     try {
@@ -34,6 +35,7 @@ const RecipesPage = () => {
         search: searchQuery.trim() || undefined,
         meal_type: selectedCategory !== "All" ? selectedCategory as RecipeCategory : undefined,
         dietary_type: selectedDietaryType !== "All" ? selectedDietaryType : undefined,
+        tags: selectedTag || undefined,
         page: 1,
         limit: 20
       });
