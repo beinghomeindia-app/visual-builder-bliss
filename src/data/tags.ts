@@ -6,7 +6,10 @@ export const AVAILABLE_TAGS = [
   "Sweet Dishes", "Healthy Eating", "Quick Meals", "Traditional Cuisine",
   "International Cuisine", "Baking", "Grilling", "Breakfast", "Desserts",
   "Comfort Food", "Soup", "Salad", "Snack", "Appetizer",
-  "Main Course", "Side Dish", "Beverage", "Budget-Friendly"
+  "Main Course", "Side Dish", "Beverage", "Budget-Friendly",
+  "School Lunch", "Impress Guests", "Without Cooking", "Snacks",
+  "Low Calories", "Diabetic", "Ancient", "Eggs",
+  "Chicken", "Mutton", "Fish"
 ] as const;
 
 export type AvailableTag = typeof AVAILABLE_TAGS[number];
@@ -41,6 +44,17 @@ export const TAG_EMOJI_MAP: Record<string, string> = {
   "Side Dish": "🥘",
   "Beverage": "🥤",
   "Budget-Friendly": "💰",
+  "School Lunch": "🎒",
+  "Impress Guests": "🎉",
+  "Without Cooking": "🥶",
+  "Snacks": "🍪",
+  "Low Calories": "🔥",
+  "Diabetic": "💚",
+  "Ancient": "🏺",
+  "Eggs": "🥚",
+  "Chicken": "🐔",
+  "Mutton": "🐑",
+  "Fish": "🐟",
 };
 
 // Color map for homepage tag cards
@@ -73,4 +87,15 @@ export const TAG_COLOR_MAP: Record<string, string> = {
   "Side Dish": "bg-stone-100 dark:bg-stone-900/30",
   "Beverage": "bg-sky-100 dark:bg-sky-900/30",
   "Budget-Friendly": "bg-emerald-100 dark:bg-emerald-900/30",
+  "School Lunch": "bg-blue-100 dark:bg-blue-900/30",
+  "Impress Guests": "bg-fuchsia-100 dark:bg-fuchsia-900/30",
+  "Without Cooking": "bg-cyan-100 dark:bg-cyan-900/30",
+  "Snacks": "bg-amber-100 dark:bg-amber-900/30",
+  "Low Calories": "bg-lime-100 dark:bg-lime-900/30",
+  "Diabetic": "bg-teal-100 dark:bg-teal-900/30",
+  "Ancient": "bg-stone-100 dark:bg-stone-900/30",
+  "Eggs": "bg-yellow-100 dark:bg-yellow-900/30",
+  "Chicken": "bg-orange-100 dark:bg-orange-900/30",
+  "Mutton": "bg-red-100 dark:bg-red-900/30",
+  "Fish": "bg-sky-100 dark:bg-sky-900/30",
 };
