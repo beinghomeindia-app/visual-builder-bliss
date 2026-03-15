@@ -18,29 +18,22 @@ const RecipeLoader = ({ message = "Loading recipes..." }: { message?: string }) 
             <rect x="28" y="45" width="44" height="32" fill="hsl(var(--primary))" />
           </g>
 
-          {/* Fork - animated rotation */}
-          <g className="origin-center animate-fork-rock" style={{ transformOrigin: '42px 52px' }}>
+          {/* Fork - animated rotation (scaled down) */}
+          <g className="origin-center animate-fork-rock" style={{ transformOrigin: '43px 52px' }}>
             <g fill="white">
-              {/* Fork handle */}
-              <rect x="40" y="52" width="4" height="20" rx="2" />
-              {/* Fork prongs */}
-              <rect x="35" y="32" width="2.5" height="16" rx="1" />
-              <rect x="39" y="32" width="2.5" height="16" rx="1" />
-              <rect x="43" y="32" width="2.5" height="16" rx="1" />
-              {/* Fork base */}
-              <rect x="35" y="47" width="10.5" height="5" rx="1.5" />
+              <rect x="41" y="52" width="3.5" height="18" rx="1.75" />
+              <rect x="37" y="34" width="2" height="14" rx="1" />
+              <rect x="40.5" y="34" width="2" height="14" rx="1" />
+              <rect x="44" y="34" width="2" height="14" rx="1" />
+              <rect x="37" y="47" width="9" height="5" rx="1.5" />
             </g>
           </g>
 
-          {/* Spoon - animated rotation (opposite) */}
-          <g className="origin-center animate-spoon-rock" style={{ transformOrigin: '58px 52px' }}>
+          {/* Spoon - animated rotation (scaled down, fully opaque) */}
+          <g className="origin-center animate-spoon-rock" style={{ transformOrigin: '57px 52px' }}>
             <g fill="white">
-              {/* Spoon handle */}
-              <rect x="56" y="52" width="4" height="20" rx="2" />
-              {/* Spoon head */}
-              <ellipse cx="58" cy="38" rx="7" ry="9" />
-              {/* Spoon inner hollow */}
-              <ellipse cx="58" cy="37" rx="4.5" ry="5.5" fill="hsl(var(--primary))" />
+              <rect x="55.5" y="52" width="3.5" height="18" rx="1.75" />
+              <ellipse cx="57" cy="39" rx="6" ry="8" />
             </g>
           </g>
         </svg>
