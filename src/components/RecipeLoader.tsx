@@ -14,8 +14,8 @@ const RecipeLoader = ({ message = "Loading recipes..." }: { message?: string }) 
               points="50,18 22,45 78,45"
               fill="hsl(var(--primary))"
             />
-            {/* House body (rectangle) */}
-            <rect x="28" y="45" width="44" height="32" fill="hsl(var(--primary))" />
+            {/* House body with door cutout at bottom center */}
+            <path d="M28,45 L72,45 L72,77 L58,77 L58,67 L42,67 L42,77 L28,77 Z" fill="hsl(var(--primary))" />
           </g>
 
           {/* Fork - animated rotation (scaled down) */}
