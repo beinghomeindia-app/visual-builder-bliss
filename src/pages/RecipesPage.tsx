@@ -10,6 +10,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import { RECIPE_CATEGORIES, type RecipeCategory } from "@/api/config";
 import { toast } from "sonner";
+import RecipeLoader from "@/components/RecipeLoader";
 
 const RecipesPage = () => {
   const [searchParams] = useSearchParams();
