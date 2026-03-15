@@ -7,6 +7,7 @@ import AppHeader from "@/components/AppHeader";
 import RecipeCard from "@/components/RecipeCard";
 import { useState, useEffect, useMemo } from "react";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
+import RecipeLoader from "@/components/RecipeLoader";
 import { AuthService } from "@/api/auth";
 import { UserTagsService, type UserTag } from "@/api/userTagsService";
 import { AVAILABLE_TAGS, TAG_EMOJI_MAP, TAG_COLOR_MAP } from "@/data/tags";
