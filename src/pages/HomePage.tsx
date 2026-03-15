@@ -100,17 +100,9 @@ const HomePage = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading ? (
-              Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="bg-card rounded-lg overflow-hidden shadow-card">
-                    <div className="aspect-[4/3] bg-accent/20"></div>
-                    <div className="p-4">
-                      <div className="h-4 bg-accent/20 rounded mb-2"></div>
-                      <div className="h-3 bg-accent/20 rounded w-20"></div>
-                    </div>
-                  </div>
-                </div>
-              ))
+              <div className="col-span-full">
+                <RecipeLoader message="Loading popular recipes..." />
+              </div>
             ) : featuredRecipes.length > 0 ? (
               featuredRecipes.map((recipe) => (
                 <RecipeCard
