@@ -1,4 +1,5 @@
-import { Heart, Loader2, Search, ChefHat, Star } from "lucide-react";
+import { Heart, Search, ChefHat, Star } from "lucide-react";
+import RecipeLoader from "@/components/RecipeLoader";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/BottomNavigation";
 import AppHeader from "@/components/AppHeader";
