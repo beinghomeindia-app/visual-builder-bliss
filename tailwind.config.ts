@@ -92,16 +92,15 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fork-rock': {
+					'0%, 100%': { transform: 'rotate(-15deg)' },
+					'50%': { transform: 'rotate(5deg)' }
+				},
+				'spoon-rock': {
+					'0%, 100%': { transform: 'rotate(15deg)' },
+					'50%': { transform: 'rotate(-5deg)' }
 				}
-			},
-			'fork-rock': {
-				'0%, 100%': { transform: 'rotate(-15deg)' },
-				'50%': { transform: 'rotate(5deg)' }
-			},
-			'spoon-rock': {
-				'0%, 100%': { transform: 'rotate(15deg)' },
-				'50%': { transform: 'rotate(-5deg)' }
-			}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
