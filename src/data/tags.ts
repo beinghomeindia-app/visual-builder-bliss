@@ -6,7 +6,10 @@ export const AVAILABLE_TAGS = [
   "Sweet Dishes", "Healthy Eating", "Quick Meals", "Traditional Cuisine",
   "International Cuisine", "Baking", "Grilling", "Breakfast", "Desserts",
   "Comfort Food", "Soup", "Salad", "Snack", "Appetizer",
-  "Main Course", "Side Dish", "Beverage", "Budget-Friendly"
+  "Main Course", "Side Dish", "Beverage", "Budget-Friendly",
+  "School Lunch", "Impress Guests", "Without Cooking", "Snacks",
+  "Low Calories", "Diabetic", "Ancient", "Eggs",
+  "Chicken", "Mutton", "Fish"
 ] as const;
 
 export type AvailableTag = typeof AVAILABLE_TAGS[number];
