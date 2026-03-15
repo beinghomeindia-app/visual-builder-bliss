@@ -44,6 +44,17 @@ export const TAG_EMOJI_MAP: Record<string, string> = {
   "Side Dish": "🥘",
   "Beverage": "🥤",
   "Budget-Friendly": "💰",
+  "School Lunch": "🎒",
+  "Impress Guests": "🎉",
+  "Without Cooking": "🥶",
+  "Snacks": "🍪",
+  "Low Calories": "🔥",
+  "Diabetic": "💚",
+  "Ancient": "🏺",
+  "Eggs": "🥚",
+  "Chicken": "🐔",
+  "Mutton": "🐑",
+  "Fish": "🐟",
 };
 
 // Color map for homepage tag cards
