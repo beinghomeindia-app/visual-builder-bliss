@@ -1,4 +1,5 @@
-import { Heart, Loader2, Search, ChefHat, Star } from "lucide-react";
+import { Heart, Search, ChefHat, Star } from "lucide-react";
+import RecipeLoader from "@/components/RecipeLoader";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/BottomNavigation";
 import AppHeader from "@/components/AppHeader";
@@ -42,10 +43,7 @@ const FavoritesPage = () => {
 
       <main className="px-4 py-6">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">Loading favorites...</span>
-          </div>
+          <RecipeLoader message="Loading favorites..." />
         ) : error ? (
           <div className="text-center py-16">
             <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />

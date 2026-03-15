@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import { RECIPE_CATEGORIES, type RecipeCategory } from "@/api/config";
 import { toast } from "sonner";
+import RecipeLoader from "@/components/RecipeLoader";
 
 const RecipesPage = () => {
   const [searchParams] = useSearchParams();
@@ -120,10 +121,7 @@ const RecipesPage = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">Loading recipes...</span>
-          </div>
+          <RecipeLoader message="Loading recipes..." />
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
