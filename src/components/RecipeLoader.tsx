@@ -1,42 +1,47 @@
 const RecipeLoader = ({ message = "Loading recipes..." }: { message?: string }) => {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-4">
-      {/* Fork & Spoon Animation */}
-      <div className="relative w-20 h-20">
-        {/* Fork - left side, rocks left */}
-        <svg
-          className="absolute left-0 top-0 w-10 h-20 origin-bottom-center animate-fork-rock"
-          viewBox="0 0 40 80"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g className="text-primary">
-            {/* Fork handle */}
-            <rect x="17" y="35" width="6" height="40" rx="3" fill="currentColor" />
-            {/* Fork prongs */}
-            <rect x="8" y="5" width="3" height="28" rx="1.5" fill="currentColor" />
-            <rect x="15" y="5" width="3" height="28" rx="1.5" fill="currentColor" />
-            <rect x="22" y="5" width="3" height="28" rx="1.5" fill="currentColor" />
-            <rect x="29" y="5" width="3" height="28" rx="1.5" fill="currentColor" />
-            {/* Fork base connecting prongs */}
-            <rect x="8" y="30" width="24" height="8" rx="2" fill="currentColor" />
-          </g>
-        </svg>
+      {/* Logo-based animation: dark circle → green house → animated fork & spoon */}
+      <div className="relative w-24 h-24">
+        <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          {/* Dark circle background */}
+          <circle cx="50" cy="50" r="48" fill="hsl(var(--foreground))" />
 
-        {/* Spoon - right side, rocks right */}
-        <svg
-          className="absolute right-0 top-0 w-10 h-20 origin-bottom-center animate-spoon-rock"
-          viewBox="0 0 40 80"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g className="text-primary">
-            {/* Spoon handle */}
-            <rect x="17" y="38" width="6" height="38" rx="3" fill="currentColor" />
-            {/* Spoon head */}
-            <ellipse cx="20" cy="18" rx="14" ry="16" fill="currentColor" />
-            {/* Spoon inner (hollow) */}
-            <ellipse cx="20" cy="16" rx="9" ry="10" fill="hsl(var(--background))" />
+          {/* Green house shape */}
+          <g>
+            {/* House roof (triangle) */}
+            <polygon
+              points="50,18 22,45 78,45"
+              fill="hsl(var(--primary))"
+            />
+            {/* House body (rectangle) */}
+            <rect x="28" y="45" width="44" height="32" fill="hsl(var(--primary))" />
+          </g>
+
+          {/* Fork - animated rotation */}
+          <g className="origin-center animate-fork-rock" style={{ transformOrigin: '42px 52px' }}>
+            <g fill="white">
+              {/* Fork handle */}
+              <rect x="40" y="52" width="4" height="20" rx="2" />
+              {/* Fork prongs */}
+              <rect x="35" y="32" width="2.5" height="16" rx="1" />
+              <rect x="39" y="32" width="2.5" height="16" rx="1" />
+              <rect x="43" y="32" width="2.5" height="16" rx="1" />
+              {/* Fork base */}
+              <rect x="35" y="47" width="10.5" height="5" rx="1.5" />
+            </g>
+          </g>
+
+          {/* Spoon - animated rotation (opposite) */}
+          <g className="origin-center animate-spoon-rock" style={{ transformOrigin: '58px 52px' }}>
+            <g fill="white">
+              {/* Spoon handle */}
+              <rect x="56" y="52" width="4" height="20" rx="2" />
+              {/* Spoon head */}
+              <ellipse cx="58" cy="38" rx="7" ry="9" />
+              {/* Spoon inner hollow */}
+              <ellipse cx="58" cy="37" rx="4.5" ry="5.5" fill="hsl(var(--primary))" />
+            </g>
           </g>
         </svg>
       </div>
