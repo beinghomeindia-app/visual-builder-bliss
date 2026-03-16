@@ -58,9 +58,12 @@ const HomePage = () => {
   const displayTags = useMemo(() => {
     if (isLoggedIn && userTags.length > 0) {
       const tagNames = userTags.map((t) => t.tag);
-      return showAllTags ? tagNames : tagNames.slice(0, 6);
+      if (showAllTags) return tagNames.length >= 6 ? tagNames : [...tagNames, ...AVAILABLE_TAGS.filter(t => !tagNames.includes(t))];
+      // Always show 6: user tags first, fill rest from AVAILABLE_TAGS
+      if (tagNames.length >= 6) return tagNames.slice(0, 6);
+      const remaining = AVAILABLE_TAGS.filter(t => !tagNames.includes(t));
+      return [...tagNames, ...remaining.slice(0, 6 - tagNames.length)];
     }
-    // Not logged in: show 6 random tags
     const shuffled = [...AVAILABLE_TAGS].sort(() => Math.random() - 0.5);
     return showAllTags ? [...AVAILABLE_TAGS] : shuffled.slice(0, 6);
   }, [isLoggedIn, userTags, showAllTags]);
