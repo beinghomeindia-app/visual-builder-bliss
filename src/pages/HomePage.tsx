@@ -58,9 +58,12 @@ const HomePage = () => {
   const displayTags = useMemo(() => {
     if (isLoggedIn && userTags.length > 0) {
       const tagNames = userTags.map((t) => t.tag);
-      return showAllTags ? tagNames : tagNames.slice(0, 6);
+      if (showAllTags) return tagNames.length >= 6 ? tagNames : [...tagNames, ...AVAILABLE_TAGS.filter(t => !tagNames.includes(t))];
+      // Always show 6: user tags first, fill rest from AVAILABLE_TAGS
+      if (tagNames.length >= 6) return tagNames.slice(0, 6);
+      const remaining = AVAILABLE_TAGS.filter(t => !tagNames.includes(t));
+      return [...tagNames, ...remaining.slice(0, 6 - tagNames.length)];
     }
-    // Not logged in: show 6 random tags
     const shuffled = [...AVAILABLE_TAGS].sort(() => Math.random() - 0.5);
     return showAllTags ? [...AVAILABLE_TAGS] : shuffled.slice(0, 6);
   }, [isLoggedIn, userTags, showAllTags]);
@@ -140,8 +143,10 @@ const HomePage = () => {
                 className={`${TAG_COLOR_MAP[tag] || "bg-muted"} rounded-xl p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform shadow-sm relative`}
               >
                 {isLoggedIn && userTags.some((t) => t.tag === tag) && (
-                  <span className="absolute top-1.5 right-1.5 bg-destructive text-destructive-foreground p-1 rounded-full text-[10px] leading-none">
-                    ❤️
+                  <span className="absolute top-1.5 right-1.5">
+                    <svg width={20} height={20} viewBox="0 0 24 24" fill="#e63946" stroke="#2D5033" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}>
+                      <path d="M12 21s-6.5-5.2-8.5-8.1C2.1 10.1 3.6 7 6.5 7c1.7 0 3.1 1.1 3.8 2.7C11.4 8.1 12.8 7 14.5 7c2.9 0 4.4 3.1 3 5.9-2 2.9-8.5 8.1-8.5 8.1z" />
+                    </svg>
                   </span>
                 )}
                 <span className="text-3xl">{TAG_EMOJI_MAP[tag] || "🏷️"}</span>
