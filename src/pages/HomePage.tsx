@@ -140,8 +140,8 @@ const HomePage = () => {
                 className={`${TAG_COLOR_MAP[tag] || "bg-muted"} rounded-xl p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform shadow-sm relative`}
               >
                 {isLoggedIn && userTags.some((t) => t.tag === tag) && (
-                  <span className="absolute top-1.5 right-1.5 bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full text-[10px] font-semibold">
-                    Your Pick
+                  <span className="absolute top-1.5 right-1.5 bg-destructive text-destructive-foreground p-1 rounded-full text-[10px] leading-none">
+                    ❤️
                   </span>
                 )}
                 <span className="text-3xl">{TAG_EMOJI_MAP[tag] || "🏷️"}</span>
