@@ -5,12 +5,13 @@ import { Link, useNavigate } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
 import AppHeader from "@/components/AppHeader";
 import RecipeCard from "@/components/RecipeCard";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { RecipeService, type RecipeListItem } from "@/api/recipeService";
 import RecipeLoader from "@/components/RecipeLoader";
 import { AuthService } from "@/api/auth";
 import { UserTagsService, type UserTag } from "@/api/userTagsService";
 import { AVAILABLE_TAGS, TAG_EMOJI_MAP, TAG_COLOR_MAP } from "@/data/tags";
+import { toast } from "sonner";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -75,6 +76,35 @@ const HomePage = () => {
       navigate(`/recipes?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  const handleToggleTag = useCallback(async (e: React.MouseEvent, tag: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isLoggedIn) {
+      toast.error("Please login to manage your tags");
+      return;
+    }
+
+    const existingTag = userTags.find((t) => t.tag === tag);
+    if (existingTag) {
+      const res = await UserTagsService.deleteTag(existingTag.id);
+      if (res.success) {
+        setUserTags((prev) => prev.filter((t) => t.id !== existingTag.id));
+        toast.success(`Removed "${tag}" from your tags`);
+      } else {
+        toast.error(res.message || "Failed to remove tag");
+      }
+    } else {
+      const res = await UserTagsService.addTag(tag);
+      if (res.success && res.data) {
+        setUserTags((prev) => [...prev, res.data!]);
+        toast.success(`Added "${tag}" to your tags`);
+      } else {
+        toast.error(res.message || "Failed to add tag");
+      }
+    }
+  }, [isLoggedIn, userTags]);
 
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-20" style={{ position: "relative" }}>
@@ -142,12 +172,18 @@ const HomePage = () => {
                 to={`/recipes?tags=${encodeURIComponent(tag)}`}
                 className={`${TAG_COLOR_MAP[tag] || "bg-muted"} rounded-xl p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform shadow-sm relative`}
               >
-                {isLoggedIn && userTags.some((t) => t.tag === tag) && (
-                  <span className="absolute top-1.5 right-1.5">
-                    <svg width={20} height={20} viewBox="0 0 24 24" fill="#e63946" stroke="#2D5033" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}>
+                {isLoggedIn && (
+                  <button
+                    type="button"
+                    aria-label={userTags.some((t) => t.tag === tag) ? "Remove from your tags" : "Add to your tags"}
+                    onClick={(e) => handleToggleTag(e, tag)}
+                    className="absolute top-1.5 right-1.5 z-10"
+                    style={{ background: 'transparent', border: 'none', padding: 0 }}
+                  >
+                    <svg width={20} height={20} viewBox="0 0 24 24" fill={userTags.some((t) => t.tag === tag) ? "#e63946" : "white"} stroke="#2D5033" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}>
                       <path d="M12 21s-6.5-5.2-8.5-8.1C2.1 10.1 3.6 7 6.5 7c1.7 0 3.1 1.1 3.8 2.7C11.4 8.1 12.8 7 14.5 7c2.9 0 4.4 3.1 3 5.9-2 2.9-8.5 8.1-8.5 8.1z" />
                     </svg>
-                  </span>
+                  </button>
                 )}
                 <span className="text-3xl">{TAG_EMOJI_MAP[tag] || "🏷️"}</span>
                 <span className="font-medium text-sm text-foreground">{tag}</span>
