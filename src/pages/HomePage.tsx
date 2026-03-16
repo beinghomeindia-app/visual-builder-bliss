@@ -77,6 +77,35 @@ const HomePage = () => {
     }
   };
 
+  const handleToggleTag = useCallback(async (e: React.MouseEvent, tag: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isLoggedIn) {
+      toast.error("Please login to manage your tags");
+      return;
+    }
+
+    const existingTag = userTags.find((t) => t.tag === tag);
+    if (existingTag) {
+      const res = await UserTagsService.deleteTag(existingTag.id);
+      if (res.success) {
+        setUserTags((prev) => prev.filter((t) => t.id !== existingTag.id));
+        toast.success(`Removed "${tag}" from your tags`);
+      } else {
+        toast.error(res.message || "Failed to remove tag");
+      }
+    } else {
+      const res = await UserTagsService.addTag(tag);
+      if (res.success && res.data) {
+        setUserTags((prev) => [...prev, res.data!]);
+        toast.success(`Added "${tag}" to your tags`);
+      } else {
+        toast.error(res.message || "Failed to add tag");
+      }
+    }
+  }, [isLoggedIn, userTags]);
+
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-20" style={{ position: "relative" }}>
       <AppHeader />
